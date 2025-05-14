@@ -1,0 +1,15 @@
+@startuml 
+title Quit Application Sequence Diagram (UC7)
+actor User
+participant MainMenuView as "MainMenuView"
+participant MenuViewModel as "MenuViewModel"
+
+activate MainMenuView
+activate MenuViewModel
+
+User -> MainMenuView: Select "Quit"
+MainMenuView -> MenuViewModel: ExecuteAction("menu.quit")
+MenuViewModel -> MenuViewModel: Quit()
+MenuViewModel -> MainMenuView--: Close()
+MainMenuView --> User--: Quit
+@enduml

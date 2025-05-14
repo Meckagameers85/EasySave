@@ -1,0 +1,159 @@
+@startuml 
+
+title EasySave Activity Diagram V1.0
+
+' Styling
+skinparam activity {
+  BackgroundColor #F8F9FA
+  BorderColor #2688d4
+  ArrowColor #2688d4
+}
+
+skinparam swimlane {
+  BorderColor #2688d4
+}
+
+' Start
+start
+
+' Main activity flow
+:Display Main Menu;
+
+repeat
+    :User Selects Option;
+    
+    switch (Selected Option)
+    case (Create Backup Task)
+        :Display Create Task Form;
+        :Enter Task Name;
+        :Validate Task Name;
+        if (Name Valid?) then (yes)
+            :Enter Source Directory;
+            :Validate Source Directory;
+            if (Source Valid?) then (yes)
+                :Enter Target Directory;
+                :Validate Target Directory;
+                if (Target Valid?) then (yes)
+                    :Select Backup Type (Full/Differential);
+                    :Create and Save Backup Task;
+                    :Display Success Message;
+                else (no)
+                    :Display Error Message;
+                endif
+            else (no)
+                :Display Error Message;
+            endif
+        else (no)
+            :Display Error Message;
+        endif
+    
+    case (View Backup Tasks)
+        :Retrieve Saved Tasks;
+        if (Tasks Exist?) then (yes)
+            :Display Task Selection;
+            :User Selects Tasks to View;
+            :Display Selected Tasks Details;
+        else (no)
+            :Display "No Tasks Found" Message;
+        endif
+    
+    case (Execute Backup Tasks)
+        :Retrieve Saved Tasks;
+        if (Tasks Exist?) then (yes)
+            :Display Task Indices Selection;
+            :User Enters Task Indices;
+            :Parse and Validate Indices;
+            if (Valid Indices?) then (yes)
+                :For Each Selected Task;
+                while (More Tasks?) is (yes)
+                    if (Backup Type?) then (Full)
+                        :Execute Full Backup;
+                    else (Differential)
+                        :Execute Differential Backup;
+                    endif
+                    :Update Real-time State;
+                    :Write Log Entry;
+                endwhile (no)
+                :Display Success Message;
+            else (no)
+                :Display Error Message;
+            endif
+        else (no)
+            :Display "No Tasks Found" Message;
+        endif
+    
+    case (Edit Backup Task)
+        :Retrieve Saved Tasks;
+        if (Tasks Exist?) then (yes)
+            :Display Task Selection;
+            :User Selects Task to Edit;
+            repeat
+                :Display Edit Options;
+                :User Selects Property to Edit;
+                switch (Selected Property)
+                case (Name)
+                    :Enter New Name;
+                    :Update Task Name;
+                case (Source)
+                    :Enter New Source Directory;
+                    :Update Source Directory;
+                case (Target)
+                    :Enter New Target Directory;
+                    :Update Target Directory;
+                case (Type)
+                    :Select New Backup Type;
+                    :Update Backup Type;
+                case (Done)
+                    :Save Updated Task;
+                    :Display Success Message;
+                    break
+                endswitch
+            repeat while (Edit Another Property?) is (yes)
+        else (no)
+            :Display "No Tasks Found" Message;
+        endif
+    
+    case (Delete Backup Task)
+        :Retrieve Saved Tasks;
+        if (Tasks Exist?) then (yes)
+            :Display Task Selection;
+            if (Selection is "All"?) then (yes)
+                :Confirm Deletion of All Tasks;
+                if (Confirmed?) then (yes)
+                    :Delete All Tasks;
+                    :Display Success Message;
+                else (no)
+                    :Cancellation Message;
+                endif
+            else (no)
+                :User Selects Task to Delete;
+                :Confirm Deletion;
+                if (Confirmed?) then (yes)
+                    :Delete Selected Task;
+                    :Display Success Message;
+                else (no)
+                    :Cancellation Message;
+                endif
+            endif
+        else (no)
+            :Display "No Tasks Found" Message;
+        endif
+    
+    case (Change Language)
+        :Display Language Options;
+        :User Selects Language;
+        :Change Application Language;
+        :Refresh Interface;
+        :Display Success Message;
+    
+    case (Quit)
+        :Exit Application;
+        stop
+    
+    endswitch
+    
+repeat while (Continue?) is (yes)
+
+stop
+
+@enduml
