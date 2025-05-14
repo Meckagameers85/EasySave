@@ -55,6 +55,7 @@ package "EasySave" {
       + SetSaveType(type: string): void
       + GetSaveType(): string
       + ToString(): string
+      + WayToString(): string
       + Run(): void
       - UpdateRealtimeState(currentState: SaveState): void
     }
@@ -78,7 +79,7 @@ package "EasySave" {
       + AddBackup(saveTask: SaveTask): void
       + GetBackups(): List<SaveTask>
       + ClearBackups(): void
-      + RunBackup(saveTask: SaveTask): void
+      + RunBackup(saveTask: SaveTask): bool
       + LoadBackup(): void
       + EditBackup(saveTask: SaveTask): string
       + DeleteBackup(saveTask: SaveTask): string
@@ -95,7 +96,7 @@ package "EasySave" {
       + settingsFile: string
       + currentLanguage: string
       + SettingsManager()
-      + ChangeLanguage(newLanguageCode: string): string
+      + ChangeLanguage(newLanguageCode: string): void
       - SaveSettings(): void
       - LoadSettings(): void
     }
@@ -118,7 +119,7 @@ package "EasySave" {
       + actions: List<ActionItem>
       - {readonly} _backupManager: BackupManager
       - {readonly} _settingsManager: SettingsManager
-      - {readonly} _localization: LanguageManager
+      - {readonly} _languageManager: LanguageManager
       - {readonly} _logger: Logger
       + MenuViewModel()
       + ExecuteAction(action: string): string

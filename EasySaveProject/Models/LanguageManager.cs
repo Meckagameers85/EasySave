@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace EasySaveConsole.Models;
+namespace EasySaveProject.Models;
 
 public class LanguageManager
 {
@@ -8,7 +8,12 @@ public class LanguageManager
 
     public void Load(string newLanguageCode)
     {
-
+        /* 
+            - Visibility : public
+            - Input : string newLanguageCode
+            - Output : None
+            - Description : Loads the translations from a JSON file based on the provided language code.
+        */
         var file = $"Languages/{newLanguageCode}.json";
         if (File.Exists(file))
         {
@@ -20,6 +25,12 @@ public class LanguageManager
 
     public string Translate(string key)
     {
+        /* 
+            - Visibility : public
+            - Input : string key
+            - Output : string
+            - Description : Translates the provided key using the loaded translations. If the key is not found, returns a placeholder.
+        */
         return _translations.TryGetValue(key, out var value) ? value : $"[missing:{key}]";
     }
 }

@@ -7,8 +7,6 @@
 
 A powerful and intuitive backup management application built with C# and .NET 8.0. EasySave provides a modern, interactive console interface for creating, managing, and executing backup tasks with real-time progress tracking.
 
-![EasySave Console Interface](https://example.com/screenshots/easysave-console.png)
-
 ## 🌟 Key Features
 
 - 🔄 **Multiple Backup Types** - Perform full or differential backups based on your needs
@@ -84,13 +82,13 @@ A powerful and intuitive backup management application built with C# and .NET 8.
 
 1. From the main menu, select "Execute backup tasks"
 2. Enter the task numbers to execute using one of these formats:
-   - Individual tasks: `1` or `3`
+   - Individual tasks: `1` or `3` for example
    - Range of tasks: `1-3` (executes tasks 1, 2, and 3)
    - Specific tasks: `1;3` (executes only tasks 1 and 3)
 
 ```
-┌─────────────────────────────────────────┐
-│ Available Backup Tasks                  │
+┌────────────────────────────────────────┐
+│ Available Backup Tasks                 │
 ├────┬──────────┬──────────┬─────────────┤
 │ ID │ Name     │ Type     │ Source      │
 ├────┼──────────┼──────────┼─────────────┤
@@ -112,14 +110,19 @@ EasySave/
 |   ├── ClassDiagram.wsd
 |   └── UseCaseDiagram.wsd
 ├── EasySaveProject/
-|   ├── EasySaveConsole.csproj
+|   ├── EasySaveProject.csproj
 |   ├── Languages/
+|   |   ├── de.json
 |   |   ├── en.json
-|   |   └── fr.json
+|   |   ├── es.json
+|   |   ├── fr.json
+|   |   ├── it.json
+|   |   ├── pt.json
+|   |   └── ru.json
 |   ├── Models/
 |   |   ├── ActionItem.cs
 |   |   ├── BackupManager.cs
-|   |   ├── LocalizationManager.cs
+|   |   ├── languageManager.cs
 |   |   ├── SaveState.cs
 |   |   ├── SaveTask.cs
 |   |   └── SettingsManager.cs
@@ -147,7 +150,7 @@ A complete backup that copies all files from the source to the destination, rega
 ### Differential Backup
 
 A smart backup that copies only files that:
-- Don't exist in the destination directory
+- Don't exists in the destination directory
 - Have been modified since the last backup (based on last modification date)
 
 This type of backup is faster and uses less storage space, making it ideal for frequent backups of large directories.
@@ -203,21 +206,21 @@ Application settings are stored in `settings.json`:
 ```
 
 Available settings:
-- `CurrentLanguage`: Language code for the UI (en, fr, es, de, it, pt, ru)
+- `CurrentLanguage`: Language code for the UI (en, fr, es, de, it, pt, ru). Default : en
 
 ## 🛠️ Development
 
 ### Build and Run
 
 ```bash
+# Move into project folder
+cd EasySaveProject
+
 # Build the solution
 dotnet build
 
 # Run the application
-dotnet run --project EasySave.ConsoleApp
-
-# Run tests
-dotnet test
+dotnet run
 ```
 
 ### Design Patterns
@@ -227,7 +230,7 @@ EasySave implements several design patterns:
 - **MVVM Pattern**: Separates UI (View) from business logic (ViewModel) and data (Model)
 - **Command Pattern**: Used in menu action execution
 - **Strategy Pattern**: For different backup types
-- **Singleton Pattern**: For managers like settings and localization
+- **Singleton Pattern**: For managers like settings and language
 - **Repository Pattern**: For backup task persistence
 
 ### Coding Conventions

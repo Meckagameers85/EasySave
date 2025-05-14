@@ -1,4 +1,4 @@
-namespace EasySaveConsole.Models;
+namespace EasySaveProject.Models;
 
 public class ActionItem
 {

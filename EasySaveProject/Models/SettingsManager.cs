@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace EasySaveConsole.Models;
+namespace EasySaveProject.Models;
 
 public class SettingsManager
 {
@@ -9,18 +9,35 @@ public class SettingsManager
 
     public SettingsManager()
     {
+        /* 
+            Visibility : public
+            Input : None
+            Output : None
+            Description : Constructor of the SettingsManager class. It loads the settings from the JSON file.
+        */
         LoadSettings();
     }
 
-    public string ChangeLanguage(string newLanguageCode)
+    public void ChangeLanguage(string newLanguageCode)
     {
+        /* 
+            Visibility : public
+            Input : string newLanguageCode
+            Output : None
+            Description : Changes the current language to the provided language code and saves the settings into a JSON file.
+        */
         currentLanguage = newLanguageCode;
         SaveSettings();
-        return $"Langue définie sur : {currentLanguage}";
     }
 
     private void SaveSettings()
     {
+        /* 
+            Visibility : private
+            Input : None
+            Output : None
+            Description : Saves the current settings into a JSON file.
+        */
         var settings = new SettingsData { currentLanguage = this.currentLanguage };
         var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(settingsFile, json);
@@ -28,6 +45,12 @@ public class SettingsManager
 
     private void LoadSettings()
     {
+        /* 
+            Visibility : private
+            Input : None
+            Output : None
+            Description : Loads the settings from a JSON file. If the file does not exist or is invalid, sets the currentLanguage to a default value.
+        */
         if (File.Exists(settingsFile))
         {
             try
@@ -39,7 +62,7 @@ public class SettingsManager
             }
             catch
             {
-                currentLanguage = "en"; // Valeur par défaut de secours
+                currentLanguage = "en"; // Default value
             }
         }
     }

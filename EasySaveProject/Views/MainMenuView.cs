@@ -1,7 +1,7 @@
 using Spectre.Console;
-using EasySaveConsole.ViewModels;
+using EasySaveProject.ViewModels;
 
-namespace EasySaveConsole.Views;
+namespace EasySaveProject.Views;
 
 public class MainMenuView
 {
@@ -14,10 +14,15 @@ public class MainMenuView
 
     public void Show()
     {
+        /*
+            Visibility : public
+            Input : None
+            Output : None
+            Description : Displays the main menu of the EasySave application.
+        */
         ShowHeader();
 
-        // Boucle principale du menu
-        while (true)
+        while (true) // Main menu loop
         {
             var choix = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
@@ -33,14 +38,19 @@ public class MainMenuView
 
     private void ShowHeader()
     {
-        // ASCII logo
-        var figlet = new FigletText("EasySave v1.0")
+        /*
+            Visibility : private
+            Input : None
+            Output : None
+            Description : Displays the header of the EasySave application.
+        */
+
+        var figlet = new FigletText("EasySave v1.0") // ASCII logo
             .Color(Color.Green)
             .Centered();
 
         AnsiConsole.Write(figlet);
 
-        // Crédit centré
         AnsiConsole.Write(
             new Align(
                 new Padder(

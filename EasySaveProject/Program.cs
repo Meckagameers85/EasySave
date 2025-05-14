@@ -1,5 +1,5 @@
-﻿using EasySaveConsole.ViewModels;
-using EasySaveConsole.Views;
+﻿using EasySaveProject.ViewModels;
+using EasySaveProject.Views;
 
 class Program
 {

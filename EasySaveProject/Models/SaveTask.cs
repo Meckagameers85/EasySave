@@ -31,17 +31,35 @@ public class SaveTask
     };
 
     public void SetSaveType(string setTypeVar) {
+        /*
+            Visibility : public
+            Input : string setTypeVar
+            Output : None
+            Description : Set the type of save based on the provided string.
+        */
         if (_stringToSaveType.TryGetValue(setTypeVar, out var saveType)) { type = saveType; } 
         else { type = SaveType.Full; }
     }
 
     public string GetSaveType() {
+        /*
+            Visibility : public
+            Input : None
+            Output : string
+            Description : Get the type of save as a string.
+        */
         if (_saveTypeToString.TryGetValue(type ?? SaveType.Full, out var typeString)) { return typeString; }
         else { return "Full"; }
     }
 
     public SaveTask(string? sourceDirectory = null, string? targetDirectory = null, string? name = null, SaveType? type = SaveType.Full)
     {
+        /*
+            Visibility : public
+            Input : string sourceDirectory, string targetDirectory, string name, SaveType type
+            Output : None
+            Description : Constructor of the SaveTask class. It initializes the source and target directories, name, and type of save.
+        */
         this.sourceDirectory = sourceDirectory;
         this.targetDirectory = targetDirectory;
         this.name = name;
@@ -50,11 +68,34 @@ public class SaveTask
 
     public override string ToString()
     {
+        /*
+            Visibility : public
+            Input : None
+            Output : string
+            Description : Get a string representation of the SaveTask object.
+        */
         return $"[bold]{name}[/] ({GetType()}): \"{sourceDirectory}\" ==> \"{targetDirectory}\"";
+    }
+
+    public string WayToString()
+    {
+        /*
+            Visibility : public
+            Input : None
+            Output : string
+            Description : Get a string representing the transfer direction of the SaveTask object.
+        */
+        return $"[bold]\"{sourceDirectory}\"[/] ========> [bold]\"{targetDirectory}\"[/]";
     }
 
     public void Run()
     {
+        /*
+            Visibility : public
+            Input : None
+            Output : None
+            Description : Run the backup process for the current SaveTask object.
+        */
         if (!Directory.Exists(sourceDirectory))
             return;
 
@@ -141,8 +182,7 @@ public class SaveTask
             Thread.Sleep(1000);
         }
 
-        // Fin de la sauvegarde
-        var finalState = new SaveState
+        var finalState = new SaveState 
         {
             name = name ?? "Unnamed",
             sourceFilePath = "",
@@ -159,6 +199,12 @@ public class SaveTask
 
     private void UpdateRealtimeState(SaveState currentState)
     {
+        /*
+            Visibility : private
+            Input : SaveState currentState
+            Output : None
+            Description : Update the real-time state of the backup process by saving it into a JSON file.
+        */
         List<SaveState> states = new();
 
         if (File.Exists(s_stateFilePath))

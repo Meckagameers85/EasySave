@@ -2,7 +2,7 @@ using System.IO;
 using Spectre.Console;
 using System.Text.Json;
 
-namespace EasySaveConsole.Models;
+namespace EasySaveProject.Models;
 
 public class BackupManager
 {
@@ -11,48 +11,88 @@ public class BackupManager
 
     public BackupManager()
     {
+        /*
+            - Visibility : public
+            - Input : None
+            - Output : None
+            - Description : Constructor of the BackupManager class. It initializes the saveTasks list and loads the backup from the JSON file.
+        */
         saveTasks = new List<SaveTask>();
         LoadBackup();
     }
 
     public void SaveBackup()
     {
+        /*
+            - Visibility : public
+            - Input : None
+            - Output : None
+            - Description : Save the current state of saveTasks into a JSON file.
+        */
         var json = JsonSerializer.Serialize(saveTasks, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(backupFile, json);
     }
     public void AddBackup(SaveTask saveTask)
     {
+        /*
+            - Visibility : public
+            - Input : SaveTask saveTask
+            - Output : None
+            - Description : Add a new SaveTask to the saveTasks list and save the backup.
+        */
         saveTasks.Add(saveTask);
         SaveBackup();
     }
 
     public List<SaveTask> GetBackups()
     {
+        /*
+            - Visibility : public
+            - Input : None
+            - Output : List<SaveTask>
+            - Description : Get the list of SaveTasks.
+        */
         return saveTasks;
     }
     
     public void ClearBackups()
     {
+        /*
+            - Visibility : public
+            - Input : None
+            - Output : None
+            - Description : Clear the list of SaveTasks and save the backup.
+        */
         saveTasks.Clear();
         SaveBackup();
     }
 
-    public void RunBackup(SaveTask saveTask)
+    public bool RunBackup(SaveTask saveTask)
     {
+        /*
+            - Visibility : public
+            - Input : SaveTask saveTask
+            - Output : bool 
+            - Description : Run the backup process for the given SaveTask.
+        */
         if (string.IsNullOrEmpty(saveTask.sourceDirectory) || string.IsNullOrEmpty(saveTask.targetDirectory))
         {
-            AnsiConsole.MarkupLine("[red]Erreur : Répertoire source ou cible manquant.[/]");
-            return;
+            return false;
         }
 
-        // Simulate backup process
-        AnsiConsole.MarkupLine($"[green]Sauvegarde de \"{saveTask.sourceDirectory}\" vers \"{saveTask.targetDirectory}\" en cours...[/]");
+        AnsiConsole.MarkupLine($"[green]{saveTask.WayToString()}[/]");
         saveTask.Run();
-        AnsiConsole.MarkupLine("[green]Sauvegarde terminée ![/]");
+        return true;
     }
     
     public void LoadBackup()
     {
+        /*
+            - Visibility : public
+            - Input : None
+            - Output : None
+            - Description : Load the backup from the JSON file. If the file does not exist or is invalid, create a new one.
+        */
         if (File.Exists(backupFile))
         {
             try
@@ -75,6 +115,12 @@ public class BackupManager
 
     public void EditBackup(SaveTask saveTask)
     {
+        /*
+            - Visibility : public
+            - Input : SaveTask saveTask
+            - Output : None
+            - Description : Edit an existing SaveTask in the saveTasks list and save the backup.
+        */
         var index = saveTasks.FindIndex(s => s.name == saveTask.name);
         if (index != -1)
         {
@@ -85,6 +131,12 @@ public class BackupManager
 
     public void DeleteBackup(SaveTask saveTask)
     {
+        /*
+            - Visibility : public
+            - Input : SaveTask saveTask
+            - Output : None
+            - Description : Delete a SaveTask from the saveTasks list and save the backup.
+        */
         var index = saveTasks.FindIndex(s => s.name == saveTask.name);
         if (index != -1)
         {
@@ -95,6 +147,13 @@ public class BackupManager
 
     public List<int> ParseIndexes(string input, int max)
     {
+        /*
+            - Visibility : public
+            - Input : string input, int max
+            - Output : List<int>
+            - Description : Parse the input string to extract indexes. The input can be a single index, a range (e.g., "1-3"), 
+                            or a list of indexes (e.g., "1;2;3").
+        */
         var indexes = new List<int>();
 
         if (input.Contains('-'))
