@@ -1,0 +1,27 @@
+@startuml
+left to right direction
+actor User as U
+' actor "OS (File Manager)" as OS
+package EasySave {
+  usecase "Create Backup Work" as UC1
+  usecase "Delete Backup Work" as UC2
+  usecase "Lauch Backup Work" as UC3
+  usecase "Show Backup Work" as UC4
+  usecase "Choose Backup Work" as UC5
+  usecase "Choose Source" as UC6
+  usecase "Choose Destination" as UC7
+  usecase "Change Language" as UC8
+}
+U --> UC8
+U --> UC1
+UC1 ..> UC6 : <<extend>>
+UC1 ..> UC7 : <<extend>>
+U --> UC2
+U --> UC3
+U --> UC4
+UC3 ..> UC5 : <<include>>
+
+' UC3 -- OS 
+
+
+@enduml
