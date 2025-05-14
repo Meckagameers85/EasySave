@@ -1,27 +1,57 @@
-@startuml
+@startuml EasySave Use Case Diagram
+title EasySave Use Case Diagram V1.0
+
 left to right direction
-actor User as U
-' actor "OS (File Manager)" as OS
-package EasySave {
-  usecase "Create Backup Work" as UC1
-  usecase "Delete Backup Work" as UC2
-  usecase "Lauch Backup Work" as UC3
-  usecase "Show Backup Work" as UC4
-  usecase "Choose Backup Work" as UC5
-  usecase "Choose Source" as UC6
-  usecase "Choose Destination" as UC7
-  usecase "Change Language" as UC8
+
+' Styling
+skinparam usecase {
+  BackgroundColor #F8F9FA
+  BorderColor #2688d4
+  ArrowColor #2688d4
 }
-U --> UC8
-U --> UC1
-UC1 ..> UC6 : <<extend>>
-UC1 ..> UC7 : <<extend>>
-U --> UC2
-U --> UC3
-U --> UC4
-UC3 ..> UC5 : <<include>>
 
-' UC3 -- OS 
+skinparam actor {
+  BorderColor #2688d4
+  BackgroundColor #F8F9FA
+}
 
+' Actor
+actor "User" as User
+
+' Use cases
+rectangle "EasySave Application" {
+  usecase "UC1: Create Backup Task" as UC1
+  usecase "UC2: View Backup Tasks" as UC2
+  usecase "UC3: Execute Backup Tasks" as UC3
+  usecase "UC4: Edit Backup Task" as UC4
+  usecase "UC5: Delete Backup Task" as UC5
+  usecase "UC6: Change Application Language" as UC6
+  usecase "UC7: Quit Application" as UC7
+
+  ' Extended use cases
+  usecase "Execute Full Backup" as UCFull
+  usecase "Execute Differential Backup" as UCDiff
+  usecase "Save Task State" as UCState
+  usecase "Load Application Settings" as UCSettings
+}
+
+' Relationships
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+
+UC3 <|-- UCFull : <<extends>>
+UC3 <|-- UCDiff : <<extends>>
+UC3 ..> UCState : <<includes>>
+UC6 ..> UCSettings : <<includes>>
+
+
+UC3 ..> UC2 : <<includes>>
+UC4 ..> UC2 : <<includes>>
+UC5 ..> UC2 : <<includes>>
 
 @enduml
