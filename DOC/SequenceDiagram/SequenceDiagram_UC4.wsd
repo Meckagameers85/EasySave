@@ -1,0 +1,61 @@
+@startuml 
+title Edit Backup Task Sequence Diagram (UC4)
+actor User
+participant MainMenuView as "MainMenuView"
+participant MenuViewModel as "MenuViewModel"
+participant BackupManager as "BackupManager"
+participant SaveTask as "SaveTask"
+
+activate MainMenuView
+activate MenuViewModel
+activate BackupManager
+activate SaveTask
+
+User -> MainMenuView: Select "Edit backup"
+MainMenuView -> MenuViewModel: ExecuteAction("menu.edit")
+MenuViewModel -> MenuViewModel: EditBackup()
+MenuViewModel -> BackupManager: GetBackups()
+BackupManager --> MenuViewModel: List<SaveTask>
+
+alt No backups found
+    MenuViewModel -> MainMenuView: Return message "No backups found"
+    MainMenuView -> User: Display "No backups found"
+else Backups found
+    MenuViewModel -> User: Show selection prompt
+    User --> MenuViewModel: Select a backup to edit
+    
+    alt User selected "Quit"
+        MenuViewModel -> MainMenuView: Return empty message
+        MainMenuView -> User: Return to main menu
+    else Backup selected
+        loop until quit
+            MenuViewModel -> User: Show current backup properties
+            MenuViewModel -> User: Ask which property to edit
+            User --> MenuViewModel: Select property (name/source/target/type)
+            
+            alt Property is name
+                MenuViewModel -> User: Ask for new name
+                User --> MenuViewModel: Enter new name
+                MenuViewModel -> SaveTask: Set Name
+            else Property is source
+                MenuViewModel -> User: Ask for new source directory
+                User --> MenuViewModel: Enter new source directory
+                MenuViewModel -> SaveTask: Set SourceDirectory
+            else Property is target
+                MenuViewModel -> User: Ask for new target directory
+                User --> MenuViewModel: Enter new target directory
+                MenuViewModel -> SaveTask: Set TargetDirectory
+            else Property is type
+                MenuViewModel -> User: Ask for new backup type
+                User --> MenuViewModel: Select new backup type
+                MenuViewModel -> SaveTask: SetSaveType(type)
+            else User selected "Quit"
+                MenuViewModel -> BackupManager: EditBackup(modifiedTask)
+                BackupManager -> BackupManager: SaveBackup()
+            end
+        end
+        MenuViewModel -> MainMenuView: Return success message
+        MainMenuView -> User: Display success message
+    end
+end
+@enduml

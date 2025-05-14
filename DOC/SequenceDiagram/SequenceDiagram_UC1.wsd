@@ -1,0 +1,32 @@
+@startuml 
+title Create Backup Task Sequence Diagram (UC1)
+actor User
+participant MainMenuView as "MainMenuView"
+participant MenuViewModel as "MenuViewModel"
+participant BackupManager as "BackupManager"
+participant SaveTask as "SaveTask"
+
+activate MainMenuView
+activate MenuViewModel
+activate BackupManager
+
+User -> MainMenuView: Select "Create backup"
+MainMenuView -> MenuViewModel: ExecuteAction("menu.create")
+MenuViewModel -> MenuViewModel: CreateBackup()
+MenuViewModel -> User: Ask for task name
+User --> MenuViewModel: Enter task name
+MenuViewModel -> User: Ask for source directory
+User --> MenuViewModel: Enter source directory
+MenuViewModel -> User: Ask for target directory
+User --> MenuViewModel: Enter target directory
+MenuViewModel -> User: Ask for backup type
+User --> MenuViewModel: Choose backup type
+
+MenuViewModel -> SaveTask++: new SaveTask()
+MenuViewModel -> SaveTask: SetSaveType(type)
+MenuViewModel -> BackupManager++: AddBackup(saveTask)
+BackupManager -> BackupManager: _saveTasks.Add(saveTask)
+BackupManager -> BackupManager: SaveBackup()
+MenuViewModel -> MainMenuView: Return success message
+MainMenuView -> User: Display success message
+@enduml

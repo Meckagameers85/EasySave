@@ -1,0 +1,15 @@
+EasySaveProject/obj
+EasySaveProject/obj/*
+EasySaveProject/bin
+EasySaveProject/bin/*
+EasySaveProject/logs
+EasySaveProject/logs/*
+EasySaveProject/saves.json
+EasySaveProject/settings.json
+EasySaveProject/state.json
+
+Loggerlib/obj
+Loggerlib/obj/*
+Loggerlib/bin
+Loggerlib/bin/*
+.vs/*

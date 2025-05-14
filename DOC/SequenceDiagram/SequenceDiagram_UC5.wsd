@@ -1,0 +1,58 @@
+@startuml 
+title Delete Backup Task Sequence Diagram (UC5)
+
+actor User
+participant MainMenuView as "MainMenuView"
+participant MenuViewModel as "MenuViewModel"
+participant BackupManager as "BackupManager"
+
+activate MainMenuView
+activate MenuViewModel
+activate BackupManager
+
+User -> MainMenuView: Select "Delete backup"
+MainMenuView -> MenuViewModel: ExecuteAction("menu.delete")
+MenuViewModel -> MenuViewModel: DeleteBackup()
+MenuViewModel -> BackupManager: GetBackups()
+BackupManager --> MenuViewModel: List<SaveTask>
+
+alt No backups found
+    MenuViewModel -> MainMenuView: Return message "No backups found"
+    MainMenuView -> User: Display "No backups found"
+else Backups found
+    MenuViewModel -> User: Show selection prompt with options
+    User --> MenuViewModel: Select a backup, "All", or "Quit"
+    
+    alt User selected "Quit"
+        MenuViewModel -> MainMenuView: Return empty message
+        MainMenuView -> User: Return to main menu
+    else User selected "All"
+        MenuViewModel -> User: Ask for confirmation
+        User --> MenuViewModel: Confirm deletion
+        
+        alt Confirmed
+            MenuViewModel -> BackupManager: ClearBackups()
+            BackupManager -> BackupManager: _saveTasks.Clear()
+            BackupManager -> BackupManager: SaveBackup()
+            MenuViewModel -> MainMenuView: Return success message
+            MainMenuView -> User: Display success message
+        else Not confirmed
+            MenuViewModel -> MainMenuView: Return cancelled message
+            MainMenuView -> User: Display cancelled message
+        end
+    else Backup selected
+        MenuViewModel -> User: Ask for confirmation
+        User --> MenuViewModel: Confirm deletion
+        
+        alt Confirmed
+            MenuViewModel -> BackupManager: DeleteBackup(selectedTask)
+            BackupManager -> BackupManager: Remove task and save
+            MenuViewModel -> MainMenuView: Return success message
+            MainMenuView -> User: Display success message
+        else Not confirmed
+            MenuViewModel -> MainMenuView: Return cancelled message
+            MainMenuView -> User: Display cancelled message
+        end
+    end
+end
+@enduml

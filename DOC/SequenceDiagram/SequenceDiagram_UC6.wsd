@@ -1,0 +1,40 @@
+@startuml 
+title Change Application Language Sequence Diagram (UC6)
+actor User
+participant MainMenuView as "MainMenuView"
+participant MenuViewModel as "MenuViewModel"
+participant SettingsManager as "SettingsManager"
+participant LanguageManager as "LanguageManager"
+
+activate MainMenuView
+activate MenuViewModel
+activate SettingsManager
+activate LanguageManager
+
+User -> MainMenuView: Select "Settings"
+MainMenuView -> MenuViewModel: ExecuteAction("menu.settings")
+MenuViewModel -> MenuViewModel: ShowSettingsMenu()
+
+MenuViewModel -> User: Show settings options
+User --> MenuViewModel: Select language option
+
+MenuViewModel -> User: Show available languages
+User --> MenuViewModel: Select desired language
+
+alt User selected "Quit"
+    MenuViewModel -> MainMenuView: Return to settings menu
+else Language selected
+    MenuViewModel -> SettingsManager: ChangeLanguage(languageCode)
+    SettingsManager -> SettingsManager: CurrentLanguage = languageCode
+    SettingsManager -> SettingsManager: SaveSettings()
+    SettingsManager --> MenuViewModel: Language changed
+    
+    MenuViewModel -> LanguageManager: Load(languageCode)
+    LanguageManager -> LanguageManager: Load translations from file
+    LanguageManager --> MenuViewModel: Translations loaded
+    
+    MenuViewModel -> MenuViewModel: RefreshActions()
+    MenuViewModel -> MainMenuView: Return success message
+    MainMenuView -> User: Display success message
+end
+@enduml

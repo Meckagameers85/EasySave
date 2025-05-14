@@ -1,0 +1,42 @@
+@startuml 
+title Execute Backup Tasks Sequence Diagram (UC3)
+actor User
+participant MainMenuView as "MainMenuView"
+participant MenuViewModel as "MenuViewModel"
+participant BackupManager as "BackupManager"
+participant SaveTask as "SaveTask"
+participant SaveState as "SaveState"
+
+activate MainMenuView
+activate MenuViewModel
+activate BackupManager
+activate SaveTask
+
+
+User -> MainMenuView: Select "Execute backup"
+MainMenuView -> MenuViewModel: ExecuteAction("menu.load")
+MenuViewModel -> MenuViewModel: LoadBackup()
+MenuViewModel -> BackupManager: GetBackups()
+BackupManager --> MenuViewModel: List<SaveTask>
+MenuViewModel -> MenuViewModel: ShowBackupTable(backups, true)
+MenuViewModel -> User: Display backup tasks and ask for selection
+User --> MenuViewModel: Enter task indices (e.g. "1-3" or "1;3")
+MenuViewModel -> BackupManager: ParseIndexes(input, backups.Count)
+BackupManager --> MenuViewModel: List<int> indices
+
+alt No valid indices
+    MenuViewModel -> MainMenuView: Return error message
+    MainMenuView -> User: Display error message
+else Valid indices
+    loop for each selected index
+        MenuViewModel -> BackupManager: RunBackup(backups[index])
+        BackupManager -> SaveTask: Run()
+        SaveTask -> SaveTask: Process files
+        SaveTask -> SaveState++: Create/Update state
+        SaveState -> SaveTask--: State updated
+        SaveTask -> BackupManager: Backup complete
+    end
+    MenuViewModel -> MainMenuView: Return success message
+    MainMenuView -> User: Display success message
+end
+@enduml

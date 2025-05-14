@@ -1,0 +1,31 @@
+@startuml 
+title View Backup Tasks Sequence Diagram (UC2)
+
+actor User
+participant MainMenuView as "MainMenuView"
+participant MenuViewModel as "MenuViewModel"
+participant BackupManager as "BackupManager"
+
+User -> MainMenuView: Select "Show backups"
+MainMenuView -> MenuViewModel: ExecuteAction("menu.show")
+MenuViewModel -> MenuViewModel: ShowBackups()
+MenuViewModel -> BackupManager: GetBackups()
+BackupManager --> MenuViewModel: List<SaveTask>
+
+alt No backups found
+    MenuViewModel -> MainMenuView: Return message "No backups found"
+    MainMenuView -> User: Display "No backups found"
+else Backups found
+    MenuViewModel -> User: Show multi-selection prompt
+    User --> MenuViewModel: Select tasks to view
+    
+    alt No tasks selected
+        MenuViewModel -> MainMenuView: Return message "No tasks selected"
+        MainMenuView -> User: Display "No tasks selected"
+    else Tasks selected
+        MenuViewModel -> MenuViewModel: ShowBackupTable(selectedTasks)
+        MenuViewModel -> MainMenuView: Return empty message (table displayed directly)
+        MainMenuView -> User: Display table of selected backups
+    end
+end
+@enduml

@@ -1,0 +1,164 @@
+@startuml
+
+title "Class Diagram EasySave V1.0"
+skinparam linetype polyline
+skinparam linetype ortho
+' Class styling
+skinparam class {
+  BackgroundColor White
+  ArrowColor #2688d4
+  BorderColor #2688d4
+}
+
+' LOGGER Library
+package "LoggerLib" {
+    class LogEntry {
+        + timestamp: DateTime
+        + saveName: string
+        + source: string
+        + destination: string
+        + sizeBytes: long
+        + transferTimeMs: double
+    }
+    class Logger { 
+        - {readonly} logDirectory: string
+        - {static} {readonly} fileLock: object
+        + Logger(logDirectory: string)
+        + Log(logEntry: LogEntry): void
+    }
+
+}
+package "EasySave" {
+
+  ' MODELS
+  package "Models" {
+    class ActionItem {
+      + name: string
+      + ActionItem(actionName: string)
+    }
+
+    enum SaveType {
+      Full
+      Differential
+    }
+
+    class SaveTask {
+      + name: string
+      + sourceDirectory: string
+      + targetDirectory: string
+      + type: SaveType
+      + {static} s_logger: Logger
+      + {static} s_stateFilePath: string
+      - _saveTypeToString: Dictionary<SaveType, string>
+      - _stringToSaveType: Dictionary<string, SaveType>
+      + SaveTask(sourceDirectory: string, targetDirectory: string, name: string, type: SaveType)
+      + SetSaveType(type: string): void
+      + GetSaveType(): string
+      + ToString(): string
+      + WayToString(): string
+      + Run(): void
+      - UpdateRealtimeState(currentState: SaveState): void
+    }
+
+    class SaveState {
+      + name: string
+      + sourceFilePath: string
+      + targetFilePath: string
+      + state: string
+      + totalFilesToCopy: int
+      + totalFilesSize: long
+      + nbFilesLeftToDo: int
+      + progression: int
+    }
+
+    class BackupManager {
+      + saveTasks: List<SaveTask>
+      + backupFile: string
+      + BackupManager()
+      + SaveBackup(): void
+      + AddBackup(saveTask: SaveTask): void
+      + GetBackups(): List<SaveTask>
+      + ClearBackups(): void
+      + RunBackup(saveTask: SaveTask): bool
+      + LoadBackup(): void
+      + EditBackup(saveTask: SaveTask): string
+      + DeleteBackup(saveTask: SaveTask): string
+      + ParseIndexes(input: string, max: int): List<int>
+    }
+
+    class LanguageManager {
+      - _translations: Dictionary<string, string>
+      + Load(newLanguageCode: string): void
+      + Translate(key: string): string
+    }
+
+    class SettingsManager {
+      + settingsFile: string
+      + currentLanguage: string
+      + SettingsManager()
+      + ChangeLanguage(newLanguageCode: string): void
+      - SaveSettings(): void
+      - LoadSettings(): void
+    }
+
+    class SettingsData {
+      + currentLanguage: string
+    }
+
+
+
+    SettingsManager *-- SettingsData
+    SaveTask *-- SaveType
+    SaveTask ..> SaveState
+    BackupManager *-- "0..*" SaveTask
+  }
+
+  ' VIEWMODELS
+  package "ViewModels" {
+    class MenuViewModel {
+      + actions: List<ActionItem>
+      - {readonly} _backupManager: BackupManager
+      - {readonly} _settingsManager: SettingsManager
+      - {readonly} _languageManager: LanguageManager
+      - {readonly} _logger: Logger
+      + MenuViewModel()
+      + ExecuteAction(action: string): string
+      - ShowSettingsMenu(): string
+      - RefreshActions(): void
+      - CreateBackup(): string
+      - ShowBackups(): string
+      - ShowBackupTable(backups: List<SaveTask>, title: string, showID: bool = false): void
+      - LoadBackup(): string
+      - EditBackup(): string
+      - DeleteBackup(): string
+      - Quit(): string
+      + GetTranslated(key: string): string
+    }
+  }
+
+  ' VIEWS
+  package "Views" {
+    class MainMenuView {
+      - {readonly} _viewModel: MenuViewModel
+      + MainMenuView(viewModel: MenuViewModel)
+      + Show(): void
+      - ShowHeader(): void
+    }
+  }
+
+  ' Main Program
+  class Program {
+    + {static} Main(): void
+  }
+
+  ' RELATIONSHIPS
+  Program ..> MainMenuView
+  Program ..> MenuViewModel
+
+  MenuViewModel *-- "0..*" ActionItem
+  MenuViewModel o-- BackupManager
+  MenuViewModel o-- SettingsManager
+  MenuViewModel o-- LanguageManager
+
+  MainMenuView o-- MenuViewModel
+  }
