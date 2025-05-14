@@ -107,11 +107,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\maher\\Desktop\\VIE\\A3\\Génie Logiciel\\Projet\\CLIVersion\\CLIVersion.csproj",
+      "projectUniqueName": "C:\\Users\\maher\\Desktop\\VIE\\A3\\Génie Logiciel\\Projet\\EasySave\\CLIVersion.csproj",
       "projectName": "CLIVersion",
-      "projectPath": "C:\\Users\\maher\\Desktop\\VIE\\A3\\Génie Logiciel\\Projet\\CLIVersion\\CLIVersion.csproj",
+      "projectPath": "C:\\Users\\maher\\Desktop\\VIE\\A3\\Génie Logiciel\\Projet\\EasySave\\CLIVersion.csproj",
       "packagesPath": "C:\\Users\\maher\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\maher\\Desktop\\VIE\\A3\\Génie Logiciel\\Projet\\CLIVersion\\obj\\",
+      "outputPath": "C:\\Users\\maher\\Desktop\\VIE\\A3\\Génie Logiciel\\Projet\\EasySave\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\maher\\AppData\\Roaming\\NuGet\\NuGet.Config"
