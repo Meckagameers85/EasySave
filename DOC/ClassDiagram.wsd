@@ -85,7 +85,7 @@ package "EasySave" {
       + ParseIndexes(input: string, max: int): List<int>
     }
 
-    class LocalizationManager {
+    class LanguageManager {
       - _translations: Dictionary<string, string>
       + Load(newLanguageCode: string): void
       + Translate(key: string): string
@@ -118,7 +118,7 @@ package "EasySave" {
       + actions: List<ActionItem>
       - {readonly} _backupManager: BackupManager
       - {readonly} _settingsManager: SettingsManager
-      - {readonly} _localization: LocalizationManager
+      - {readonly} _localization: LanguageManager
       - {readonly} _logger: Logger
       + MenuViewModel()
       + ExecuteAction(action: string): string
@@ -157,7 +157,7 @@ package "EasySave" {
   MenuViewModel *-- "0..*" ActionItem
   MenuViewModel o-- BackupManager
   MenuViewModel o-- SettingsManager
-  MenuViewModel o-- LocalizationManager
+  MenuViewModel o-- LanguageManager
 
   MainMenuView o-- MenuViewModel
   }

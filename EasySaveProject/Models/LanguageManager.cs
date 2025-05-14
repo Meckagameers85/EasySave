@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace EasySaveConsole.Models;
 
-public class LocalizationManager
+public class LanguageManager
 {
     private Dictionary<string, string> _translations = new();
 

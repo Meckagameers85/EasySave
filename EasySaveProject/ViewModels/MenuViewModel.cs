@@ -12,13 +12,13 @@ public class MenuViewModel
 
     private readonly BackupManager _backupManager;
     private readonly SettingsManager _settingsManager;
-    private readonly LocalizationManager _localization;
+    private readonly LanguageManager _localization;
     private readonly Logger _logger;
-    
+
     public MenuViewModel()
     {
         _settingsManager = new SettingsManager();
-        _localization = new LocalizationManager();
+        _localization = new LanguageManager();
         _localization.Load(_settingsManager.currentLanguage);
         _backupManager = new BackupManager();
         _logger = new Logger("logs");
@@ -72,7 +72,7 @@ public class MenuViewModel
                 var lang = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title(_localization.Translate("settings.choose.language"))
-                        .AddChoices( new[]
+                        .AddChoices(new[]
                             {
                                 _localization.Translate("lang.en"),
                                 _localization.Translate("lang.fr"),
@@ -84,7 +84,8 @@ public class MenuViewModel
                                 _localization.Translate("menu.quit")
                             }
                         ));
-                if (lang == _localization.Translate("menu.quit")) { 
+                if (lang == _localization.Translate("menu.quit"))
+                {
                     return _localization.Translate("lang.set") + " " + _settingsManager.currentLanguage;
                 }
                 Dictionary<string, string> languageMapCode = new Dictionary<string, string>
@@ -142,53 +143,53 @@ public class MenuViewModel
     }
 
     private string CreateBackup()
+    {
+        var save = new SaveTask();
+
+        save.name = AnsiConsole.Ask<string>(_localization.Translate("create.name"));
+        _backupManager.GetBackups().ForEach(s =>
+        {
+            if (s.name == save.name)
             {
-                var save = new SaveTask();
-
+                AnsiConsole.MarkupLine($"[red]{_localization.Translate("create.errorName")}[/]");
                 save.name = AnsiConsole.Ask<string>(_localization.Translate("create.name"));
-                _backupManager.GetBackups().ForEach(s =>
-                {
-                    if (s.name == save.name)
-                    {
-                        AnsiConsole.MarkupLine($"[red]{_localization.Translate("create.errorName")}[/]");
-                        save.name = AnsiConsole.Ask<string>(_localization.Translate("create.name"));
-                    }
-                });
-
-                save.sourceDirectory = AnsiConsole.Ask<string>(_localization.Translate("create.srcPath"));
-                while (!Directory.Exists(save.sourceDirectory))
-                {
-                    AnsiConsole.MarkupLine($"[red]{_localization.Translate("create.errorPath")}[/]");
-                    save.sourceDirectory = AnsiConsole.Ask<string>(_localization.Translate("create.srcPath"));
-                }
-
-                save.targetDirectory = AnsiConsole.Ask<string>(_localization.Translate("create.destPath"));
-                while (!Directory.Exists(save.targetDirectory))
-                {
-                    AnsiConsole.MarkupLine($"[red]{_localization.Translate("create.errorPath")}[/]");
-                    save.targetDirectory = AnsiConsole.Ask<string>(_localization.Translate("create.destPath"));
-                }
-                save.SetSaveType(AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title(_localization.Translate("create.type"))
-                        .AddChoices(
-                            _localization.Translate("create.type.full"),
-                            _localization.Translate("create.type.differential")
-                        )
-                    )
-                );
-                try
-                {
-                    _backupManager.AddBackup(save);
-                    AnsiConsole.MarkupLine($"[green]{_localization.Translate("create.succes")}[/]");
-                }
-                catch (System.Exception)
-                {
-                    AnsiConsole.MarkupLine($"[red]{_localization.Translate("create.fail")}[/]");
-                }
-                return save.ToString();
             }
-    
+        });
+
+        save.sourceDirectory = AnsiConsole.Ask<string>(_localization.Translate("create.srcPath"));
+        while (!Directory.Exists(save.sourceDirectory))
+        {
+            AnsiConsole.MarkupLine($"[red]{_localization.Translate("create.errorPath")}[/]");
+            save.sourceDirectory = AnsiConsole.Ask<string>(_localization.Translate("create.srcPath"));
+        }
+
+        save.targetDirectory = AnsiConsole.Ask<string>(_localization.Translate("create.destPath"));
+        while (!Directory.Exists(save.targetDirectory))
+        {
+            AnsiConsole.MarkupLine($"[red]{_localization.Translate("create.errorPath")}[/]");
+            save.targetDirectory = AnsiConsole.Ask<string>(_localization.Translate("create.destPath"));
+        }
+        save.SetSaveType(AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title(_localization.Translate("create.type"))
+                .AddChoices(
+                    _localization.Translate("create.type.full"),
+                    _localization.Translate("create.type.differential")
+                )
+            )
+        );
+        try
+        {
+            _backupManager.AddBackup(save);
+            AnsiConsole.MarkupLine($"[green]{_localization.Translate("create.succes")}[/]");
+        }
+        catch (System.Exception)
+        {
+            AnsiConsole.MarkupLine($"[red]{_localization.Translate("create.fail")}[/]");
+        }
+        return save.ToString();
+    }
+
     private string ShowBackups()
     {
         var backups = _backupManager.GetBackups();
@@ -240,7 +241,8 @@ public class MenuViewModel
             .Title($"[underline green]{title}[/]")
             .Border(TableBorder.Rounded);
 
-        if (showID) {
+        if (showID)
+        {
             table.AddColumn($"{_localization.Translate("backup.id")}");
         }
 
@@ -252,7 +254,8 @@ public class MenuViewModel
         int id = 1;
         foreach (var backup in backups)
         {
-            if (showID) {
+            if (showID)
+            {
                 table.AddRow(
                     Markup.Escape(id.ToString()),
                     Markup.Escape(backup.name ?? ""),
@@ -261,7 +264,8 @@ public class MenuViewModel
                     Markup.Escape(backup.targetDirectory ?? "")
                 );
             }
-            else {
+            else
+            {
                 table.AddRow(
                     Markup.Escape(backup.name ?? ""),
                     Markup.Escape(typeMap[backup.GetSaveType()]),
@@ -274,7 +278,7 @@ public class MenuViewModel
 
         AnsiConsole.Write(table);
     }
-    
+
     private string LoadBackup()
     {
         var backups = _backupManager.GetBackups();
@@ -316,21 +320,23 @@ public class MenuViewModel
 
             var selected = AnsiConsole.Prompt(
                 new SelectionPrompt<object>()
-                    .Title(_localization.Translate("edit.select")) 
+                    .Title(_localization.Translate("edit.select"))
                     .PageSize(10)
                     .UseConverter(item => item is SaveTask task ? task.name ?? "" : item?.ToString() ?? "")
                     .AddChoices(choices)
             );
 
-            if (selected is string s && s == quitLabel) { break; } 
+            if (selected is string s && s == quitLabel) { break; }
 
             else if (selected is not SaveTask backupToEdit)
             {
                 AnsiConsole.MarkupLine($"[yellow]{_localization.Translate("show.noSelected")}[/]");
             }
 
-            else {
-                bool IsNameValid(string name) {
+            else
+            {
+                bool IsNameValid(string name)
+                {
                     foreach (var backup in backups)
                     {
                         Console.WriteLine($"Name: {backup.name} - Input: {name}");
@@ -344,7 +350,7 @@ public class MenuViewModel
                 while (true)
                 {
                     AnsiConsole.MarkupLine($"[green]{_localization.Translate("edit.selected")}{Markup.Escape(backupToEdit.name ?? "")}[/]");
-                
+
                     string editTitle = $"{backupToEdit.name} :";
                     List<SaveTask> table = new List<SaveTask> { backupToEdit };
                     ShowBackupTable(table, editTitle);
@@ -356,7 +362,7 @@ public class MenuViewModel
                         _localization.Translate("backup.type")
                     };
                     editChoices.Add(quitLabel);
-                    
+
                     var editSelected = AnsiConsole.Prompt(
                         new SelectionPrompt<string>()
                             .Title($"[bold]{_localization.Translate("edit.title")}[/]")
@@ -433,7 +439,7 @@ public class MenuViewModel
 
         var selected = AnsiConsole.Prompt(
             new SelectionPrompt<object>()
-                .Title(_localization.Translate("delete.select")) 
+                .Title(_localization.Translate("delete.select"))
                 .PageSize(10)
                 .UseConverter(item => item is SaveTask task ? task.name ?? "" : item?.ToString() ?? "")
                 .AddChoices(choices)
@@ -493,12 +499,12 @@ public class MenuViewModel
 
         return "";
     }
-    
+
     private string Quit()
     {
         Environment.Exit(0);
         return "A++";
     }
-    
+
     public string GetTranslated(string key) => _localization.Translate(key);
 }
