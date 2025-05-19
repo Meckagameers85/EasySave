@@ -45,7 +45,7 @@ public class MainMenuView
             Description : Displays the header of the EasySave application.
         */
 
-        var figlet = new FigletText("EasySave v1.1") // ASCII logo
+        var figlet = new FigletText("EasySave v1.1.0") // ASCII logo
             .Color(Color.Green)
             .Centered();
 
