@@ -27,8 +27,8 @@ public class MenuViewModel
         _languageManager = new LanguageManager();
         _languageManager.Load(_settingsManager.currentLanguage);
         _backupManager = new BackupManager();
-        _logger = new Logger("logs");
-        SaveTask.s_logger = _logger;
+        _logger = new Logger("logs", _settingsManager.formatLogger);
+        SaveTask.s_logger = _logger;        
 
         actions = new List<ActionItem>
         {
@@ -80,6 +80,7 @@ public class MenuViewModel
                     .AddChoices(new[]
                     {
                         _languageManager.Translate("settings.language"),
+                        _languageManager.Translate("settings.format"),
                         _languageManager.Translate("menu.quit")
                     }));
 
@@ -120,6 +121,33 @@ public class MenuViewModel
                 RefreshActions();
                 return _languageManager.Translate("lang.set") + " " + _languageManager.Translate($"lang.{langCode}");
             }
+            else if (option == _languageManager.Translate("settings.format"))
+            {
+                var format = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title(_languageManager.Translate("settings.choose.format"))
+                        .AddChoices(new[]
+                            {
+                                _languageManager.Translate("format.json"),
+                                _languageManager.Translate("format.xml"),
+                                _languageManager.Translate("menu.quit")
+                            }
+                        ));
+                if (format == _languageManager.Translate("menu.quit"))
+                {
+                    return _languageManager.Translate("format.set") + " " + _settingsManager.formatLogger;
+                }
+                Dictionary<string, string> formatMapCode = new Dictionary<string, string>
+                {
+                    { _languageManager.Translate("format.json"), "JSON" },
+                    { _languageManager.Translate("format.xml"), "XML" }
+                };
+                string formatCode = formatMapCode[format];
+                _settingsManager.ChangeFormatLogger(formatCode);
+                _logger.logFormat = formatCode;
+                RefreshActions();
+                return _languageManager.Translate("format.set") + " " + _languageManager.Translate($"format.{formatCode.ToLower()}");
+            }
             else if (option == _languageManager.Translate("menu.quit"))
             {
                 break;
@@ -147,6 +175,7 @@ public class MenuViewModel
             new(_languageManager.Translate("menu.settings")),
             new(_languageManager.Translate("menu.quit"))
         };
+
     }
 
     private string CreateBackup()

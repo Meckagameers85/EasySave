@@ -1,4 +1,5 @@
 using System.Text.Json;
+using LoggerLib;
 
 namespace EasySaveProject.Models;
 
@@ -6,6 +7,8 @@ public class SettingsManager
 {
     public string settingsFile = "settings.json";
     public string currentLanguage { get; private set; } = "en";
+
+    public string formatLogger { get; private set; } = "JSON";
 
     public SettingsManager()
     {
@@ -30,6 +33,18 @@ public class SettingsManager
         SaveSettings();
     }
 
+    public void ChangeFormatLogger(string newFormatLogger)
+    {
+        /* 
+            Visibility : public
+            Input : string newFormatLogger
+            Output : None
+            Description : Changes the current format logger to the provided format logger and saves the settings into a JSON file.
+        */
+        formatLogger = newFormatLogger;
+        SaveSettings();
+    }
+
     private void SaveSettings()
     {
         /* 
@@ -38,7 +53,7 @@ public class SettingsManager
             Output : None
             Description : Saves the current settings into a JSON file.
         */
-        var settings = new SettingsData { currentLanguage = this.currentLanguage };
+        var settings = new SettingsData { currentLanguage = this.currentLanguage, formatLogger = this.formatLogger };
         var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(settingsFile, json);
     }
@@ -58,11 +73,15 @@ public class SettingsManager
                 var json = File.ReadAllText(settingsFile);
                 var loaded = JsonSerializer.Deserialize<SettingsData>(json);
                 if (loaded is not null)
+                {
                     currentLanguage = loaded.currentLanguage;
+                    formatLogger = loaded.formatLogger;
+                }
             }
             catch
             {
                 currentLanguage = "en"; // Default value
+                formatLogger = "JSON"; // Default value
             }
         }
     }
@@ -70,5 +89,6 @@ public class SettingsManager
     private class SettingsData
     {
         public string currentLanguage { get; set; } = "en";
+        public string formatLogger { get; set; } = "JSON";
     }
 }
