@@ -23,8 +23,12 @@ package "LoggerLib" {
     class Logger { 
         - {readonly} logDirectory: string
         - {static} {readonly} fileLock: object
+        + logFormat: string
         + Logger(logDirectory: string)
+        + Logger(logDirectory: string, logFormat: string)
         + Log(logEntry: LogEntry): void
+        - LogIntoJson(entry: LogEntry): void
+        - LogIntoXml(entry: LogEntry): void
     }
 
 }
@@ -159,6 +163,9 @@ package "EasySave" {
   MenuViewModel o-- BackupManager
   MenuViewModel o-- SettingsManager
   MenuViewModel o-- LanguageManager
+  MenuViewModel *-- Logger : _logger
 
   MainMenuView o-- MenuViewModel
+
+  SaveTask ..> Logger : s_logger
   }
