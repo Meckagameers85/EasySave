@@ -1,15 +1,18 @@
 using System.IO;
 using Spectre.Console;
 using System.Text.Json;
+using LoggerLib;
 
 namespace EasySaveProject.Models;
 
 public class BackupManager
 {
+    private static readonly Lazy<BackupManager> _instance = new(() => new BackupManager());
+    public static BackupManager instance => _instance.Value;
     public List<SaveTask> saveTasks { get; set; }
     public string backupFile = "saves.json";
 
-    public BackupManager()
+    private BackupManager()
     {
         /*
             - Visibility : public

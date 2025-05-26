@@ -1,10 +1,19 @@
 ﻿using EasySaveProject.ViewModels;
 using EasySaveProject.Views;
+using EasySaveProject.Models;
+using System;
+using System.IO;
 
 class Program
 {
     static void Main(string[] args)
     {
+        var backupManager = BackupManager.instance;
+        var settingsManager = SettingsManager.instance;
+        var languageManager = LanguageManager.instance;
+        var logger = new LoggerLib.Logger("logs", settingsManager.formatLogger);
+        SaveTask.s_logger = logger;
+
         if (args.Length == 1 && (args[0] == "-h" || args[0] == "-help"))
         {
             ShowHelp();
@@ -16,6 +25,7 @@ class Program
             string source = args[0];
             string target = args[1];
             string type = args[2];
+
             if (!Directory.Exists(source))
             {
                 Console.WriteLine($"Source directory not found: {source}");
@@ -49,7 +59,7 @@ class Program
         else
         {
             // Mode interactif
-            var viewModel = new MenuViewModel();
+            var viewModel = new MenuViewModel(settingsManager, languageManager, backupManager, logger);
             var view = new MainMenuView(viewModel);
             view.Show();
         }
