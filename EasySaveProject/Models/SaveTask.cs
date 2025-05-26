@@ -178,8 +178,6 @@ public class SaveTask
             };
 
             UpdateRealtimeState(state);
-
-            Thread.Sleep(1000);
         }
 
         var finalState = new SaveState 

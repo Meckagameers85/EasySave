@@ -28,7 +28,7 @@ public class MenuViewModel
         _languageManager.Load(_settingsManager.currentLanguage);
         _backupManager = new BackupManager();
         _logger = new Logger("logs", _settingsManager.formatLogger);
-        SaveTask.s_logger = _logger;        
+        SaveTask.s_logger = _logger;
 
         actions = new List<ActionItem>
         {
@@ -206,8 +206,29 @@ public class MenuViewModel
         }
 
         save.targetDirectory = AnsiConsole.Ask<string>(_languageManager.Translate("create.destPath"));
-        while (!Directory.Exists(save.targetDirectory))
+        while (true)
         {
+            bool isValid = true;
+
+            if (string.IsNullOrWhiteSpace(save.targetDirectory)) {
+                isValid = false;
+            }
+            else {
+                try {
+                    foreach (char c in Path.GetInvalidPathChars()) {
+                        if (save.targetDirectory.Contains(c)) {
+                            isValid = false;
+                            break;
+                        }
+                    }
+                }
+                catch {
+                    isValid = false;
+                }
+            }
+
+            if (isValid) break;
+
             AnsiConsole.MarkupLine($"[red]{_languageManager.Translate("create.errorPath")}[/]");
             save.targetDirectory = AnsiConsole.Ask<string>(_languageManager.Translate("create.destPath"));
         }
@@ -458,8 +479,28 @@ public class MenuViewModel
                     else if (editSelected == _languageManager.Translate("backup.target"))
                     {
                         backupToEdit.targetDirectory = AnsiConsole.Ask<string>(_languageManager.Translate("edit.newTarget"));
-                        while (!Directory.Exists(backupToEdit.targetDirectory))
+                        while (true)
                         {
+                            bool isValid = true;
+
+                            if (string.IsNullOrWhiteSpace(backupToEdit.targetDirectory)) {
+                                isValid = false;
+                            }
+                            else {
+                                try {
+                                    foreach (char c in Path.GetInvalidPathChars()) {
+                                        if (backupToEdit.targetDirectory.Contains(c)) {
+                                            isValid = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                                catch {
+                                    isValid = false;
+                                }
+                            }
+
+                            if (isValid) break;
                             AnsiConsole.MarkupLine($"[red]{_languageManager.Translate("create.errorPath")}[/]");
                             backupToEdit.targetDirectory = AnsiConsole.Ask<string>(_languageManager.Translate("create.destPath"));
                         }

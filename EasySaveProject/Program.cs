@@ -5,8 +5,13 @@ class Program
 {
     static void Main(string[] args)
     {
+        if (args.Length == 1 && (args[0] == "-h" || args[0] == "-help"))
+        {
+            ShowHelp();
+            return;
+        }
 
-        if (args.Length == 3)
+        else if (args.Length == 3)
         {
             string source = args[0];
             string target = args[1];
@@ -17,9 +22,11 @@ class Program
                 return;
             }
 
-            if (!Directory.Exists(target))
+            // Vérifier que le chemin cible n'est pas vide et contient uniquement des caractères valides
+            if (string.IsNullOrWhiteSpace(target) || target.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
             {
-                Directory.CreateDirectory(target);
+                Console.WriteLine("Le chemin de destination est vide ou contient des caractères invalides.");
+                return;
             }
 
             if (type != "Full" && type != "Differential")
@@ -46,5 +53,19 @@ class Program
             var view = new MainMenuView(viewModel);
             view.Show();
         }
+    }
+    static void ShowHelp()
+    {
+        Console.WriteLine("Usage:");
+        Console.WriteLine("  EasySaveProject.exe <Source> <Target> <Type>");
+        Console.WriteLine("  <Source> : Directory to back up");
+        Console.WriteLine("  <Target> : Destination directory");
+        Console.WriteLine("  <Type>   : 'Full' or 'Differential'");
+        Console.WriteLine();
+        Console.WriteLine("Example:");
+        Console.WriteLine("  EasySaveProject.exe C:\\MyData C:\\MyBackup Full");
+        Console.WriteLine();
+        Console.WriteLine("Options:");
+        Console.WriteLine("  -h, -help       Show this help message");
     }
 }
