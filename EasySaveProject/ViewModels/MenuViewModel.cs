@@ -13,9 +13,9 @@ public class MenuViewModel
     private readonly BackupManager _backupManager;
     private readonly SettingsManager _settingsManager;
     private readonly LanguageManager _languageManager;
-    private readonly Logger _logger;
+    private readonly LoggerLib.Logger _logger;
 
-    public MenuViewModel()
+    public MenuViewModel(SettingsManager? settingsManager = null, LanguageManager? languageManager = null, BackupManager? backupManager = null, Logger? logger = null)
     {
         /*
             Visibility : public
@@ -23,13 +23,12 @@ public class MenuViewModel
             Output : None
             Description : Constructor of the MenuViewModel class. Initializes the settings manager, language manager, backup manager, and logger.
         */
-        _settingsManager = new SettingsManager();
-        _languageManager = new LanguageManager();
+        _settingsManager = settingsManager ?? SettingsManager.instance;
+        _languageManager = languageManager ?? LanguageManager.instance;
         _languageManager.Load(_settingsManager.currentLanguage);
-        _backupManager = new BackupManager();
-        _logger = new Logger("logs", _settingsManager.formatLogger);
+        _backupManager = backupManager ?? BackupManager.instance;
+        _logger = logger ?? new LoggerLib.Logger("logs", _settingsManager.formatLogger);
         SaveTask.s_logger = _logger;
-
         actions = new List<ActionItem>
         {
             new(_languageManager.Translate("menu.create")),

@@ -4,7 +4,20 @@ namespace EasySaveProject.Models;
 
 public class LanguageManager
 {
+    private static readonly Lazy<LanguageManager> _instance = new(() => new LanguageManager());
+    public static LanguageManager instance => _instance.Value;
     private Dictionary<string, string> _translations = new();
+
+    private LanguageManager()
+    {
+        /* 
+            - Visibility : private
+            - Input : None
+            - Output : None
+            - Description : Constructor of the LanguageManager class. It initializes the translations dictionary.
+        */
+        Load("en"); // Load default language (English)
+    }
 
     public void Load(string newLanguageCode)
     {

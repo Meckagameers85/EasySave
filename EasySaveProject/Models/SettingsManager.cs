@@ -5,12 +5,15 @@ namespace EasySaveProject.Models;
 
 public class SettingsManager
 {
+    
+    private static readonly Lazy<SettingsManager> _instance = new(() => new SettingsManager());
+    public static SettingsManager instance => _instance.Value;
     public string settingsFile = "settings.json";
     public string currentLanguage { get; private set; } = "en";
 
     public string formatLogger { get; private set; } = "JSON";
 
-    public SettingsManager()
+    private SettingsManager()
     {
         /* 
             Visibility : public
