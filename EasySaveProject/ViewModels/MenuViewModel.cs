@@ -29,6 +29,8 @@ public class MenuViewModel
         _backupManager = backupManager ?? BackupManager.instance;
         _logger = logger ?? new LoggerLib.Logger("logs", _settingsManager.formatLogger);
         SaveTask.s_logger = _logger;
+        SaveTask.s_settingsManager = _settingsManager;
+
         actions = new List<ActionItem>
         {
             new(_languageManager.Translate("menu.create")),
@@ -75,11 +77,12 @@ public class MenuViewModel
             var option = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title(_languageManager.Translate("settings.title"))
-                    .PageSize(5)
+                    .PageSize(6)
                     .AddChoices(new[]
                     {
                         _languageManager.Translate("settings.language"),
                         _languageManager.Translate("settings.format"),
+                        "Logiciel métier",
                         _languageManager.Translate("menu.quit")
                     }));
 
@@ -147,6 +150,10 @@ public class MenuViewModel
                 RefreshActions();
                 return _languageManager.Translate("format.set") + " " + _languageManager.Translate($"format.{formatCode.ToLower()}");
             }
+            else if (option == "Logiciel métier")  // 🆕 NOUVEAU MENU
+            {
+                return ShowBusinessSoftwareSettings();
+            }
             else if (option == _languageManager.Translate("menu.quit"))
             {
                 break;
@@ -154,6 +161,64 @@ public class MenuViewModel
         }
 
         return "";
+    }
+
+    // Ajout de la fonction ShowBusinessSoftwareSettings, pour configurer le logiciel métier
+    private string ShowBusinessSoftwareSettings()
+    {
+        /*
+            Visibility : private
+            Input : None
+            Output : string
+            Description : Shows business software settings for process monitoring.
+        */
+        AnsiConsole.MarkupLine($"[green]Logiciel métier actuel: '{_settingsManager.businessSoftwareName}'[/]");
+        
+        var action = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Configuration du logiciel métier")
+                .AddChoices(new[]
+                {
+                    "Changer le logiciel métier",
+                    "Tester la détection", 
+                    "Désactiver la surveillance",
+                    _languageManager.Translate("menu.quit")
+                }));
+
+        if (action == "Changer le logiciel métier")
+        {
+            var processName = AnsiConsole.Ask<string>("Nom du processus à surveiller (ex: calc, notepad):");
+            _settingsManager.SetBusinessSoftwareName(processName);
+            AnsiConsole.MarkupLine($"[green]Logiciel métier défini: '{processName}'[/]");
+        }
+        else if (action == "Tester la détection")
+        {
+            var monitor = new ProcessMonitor(_settingsManager.businessSoftwareName);
+            var isRunning = monitor.IsBusinessSoftwareRunning();
+            var runningProcesses = monitor.GetRunningBusinessSoftwareProcesses();
+            
+            AnsiConsole.MarkupLine($"[blue]Logiciel '{_settingsManager.businessSoftwareName}' en cours: {isRunning}[/]");
+            if (runningProcesses.Count > 0)
+            {
+                AnsiConsole.MarkupLine($"[blue]Processus trouvés:[/]");
+                foreach (var process in runningProcesses)
+                {
+                    AnsiConsole.MarkupLine($"  - {process}");
+                }
+            }
+            
+            if (!isRunning && _settingsManager.businessSoftwareName == "calc")
+            {
+                AnsiConsole.MarkupLine("\n[yellow]💡 Ouvrez la calculatrice Windows pour tester![/]");
+            }
+        }
+        else if (action == "Désactiver la surveillance")
+        {
+            _settingsManager.SetBusinessSoftwareName("");
+            AnsiConsole.MarkupLine($"[green]Surveillance désactivée[/]");
+        }
+        
+        return "Configuration du logiciel métier mise à jour";
     }
 
     private void RefreshActions()
