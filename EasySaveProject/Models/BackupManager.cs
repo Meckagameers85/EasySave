@@ -88,20 +88,20 @@ public class BackupManager
         _semaphore.Wait();
         try
         {
-            AnsiConsole.MarkupLine($"[green]{saveTask.WayToString()}[/]");
+            // Create a new thread to run the backup task
             Thread t = new Thread(() =>
             {
                 try
                 {
                     saveTask.Run();
+                    AnsiConsole.MarkupLine($"[green]{saveTask.WayToString()}[/]");
                 }
                 catch (Exception ex)
                 {
                     AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
                 }
             });
-            t.Start();
-            t.Join();  
+            t.Start();  
         }
         finally
         {
