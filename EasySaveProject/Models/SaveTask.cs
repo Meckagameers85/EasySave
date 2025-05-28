@@ -109,6 +109,8 @@ public class SaveTask
 
         foreach (var file in files)
         {
+            // je veux faire un sleep de 4s
+            System.Threading.Thread.Sleep(1000);
             var relativePath = Path.GetRelativePath(sourceDirectory!, file);
             var destinationPath = Path.Combine(targetDirectory!, relativePath);
             var destinationDir = Path.GetDirectoryName(destinationPath);
@@ -152,7 +154,6 @@ public class SaveTask
                 var startTime = DateTime.UtcNow;
                 try {
                     File.Copy(file, destinationPath, true);
-
                     var endTime = DateTime.UtcNow;
                     logEntry.transferTimeMs = (endTime - startTime).TotalMilliseconds;
                 }

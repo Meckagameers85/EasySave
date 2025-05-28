@@ -13,3 +13,4 @@ Loggerlib/obj/*
 Loggerlib/bin
 Loggerlib/bin/*
 .vs/*
+.fake

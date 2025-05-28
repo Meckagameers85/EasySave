@@ -70,21 +70,43 @@ public class BackupManager
         SaveBackup();
     }
 
+    private static readonly SemaphoreSlim _semaphore = new(3, 3);
+
     public bool RunBackup(SaveTask saveTask)
     {
         /*
             - Visibility : public
             - Input : SaveTask saveTask
             - Output : bool 
-            - Description : Run the backup process for the given SaveTask.
+            - Description : Run the backup process for the given SaveTask. Uses a semaphore to prevent concurrent access.
         */
         if (string.IsNullOrEmpty(saveTask.sourceDirectory) || string.IsNullOrEmpty(saveTask.targetDirectory))
         {
             return false;
         }
 
-        AnsiConsole.MarkupLine($"[green]{saveTask.WayToString()}[/]");
-        saveTask.Run();
+        _semaphore.Wait();
+        try
+        {
+            AnsiConsole.MarkupLine($"[green]{saveTask.WayToString()}[/]");
+            Thread t = new Thread(() =>
+            {
+                try
+                {
+                    saveTask.Run();
+                }
+                catch (Exception ex)
+                {
+                    AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
+                }
+            });
+            t.Start();
+            t.Join();  
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
         return true;
     }
     
