@@ -5,13 +5,14 @@ namespace EasySaveProject.Models;
 
 public class SettingsManager
 {
-    
+
     private static readonly Lazy<SettingsManager> _instance = new(() => new SettingsManager());
     public static SettingsManager instance => _instance.Value;
     public string settingsFile = "settings.json";
     public string currentLanguage { get; private set; } = "en";
 
     public string formatLogger { get; private set; } = "JSON";
+    public string businessSoftwareName { get; private set; } = "";
 
     private SettingsManager()
     {
@@ -56,7 +57,7 @@ public class SettingsManager
             Output : None
             Description : Saves the current settings into a JSON file.
         */
-        var settings = new SettingsData { currentLanguage = this.currentLanguage, formatLogger = this.formatLogger };
+        var settings = new SettingsData { currentLanguage = this.currentLanguage, formatLogger = this.formatLogger, businessSoftwareName = this.businessSoftwareName };
         var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(settingsFile, json);
     }
@@ -79,12 +80,14 @@ public class SettingsManager
                 {
                     currentLanguage = loaded.currentLanguage;
                     formatLogger = loaded.formatLogger;
+                    businessSoftwareName = loaded.businessSoftwareName ?? "";
                 }
             }
             catch
             {
                 currentLanguage = "en"; // Default value
                 formatLogger = "JSON"; // Default value
+                businessSoftwareName = "calc";
             }
         }
     }
@@ -93,5 +96,18 @@ public class SettingsManager
     {
         public string currentLanguage { get; set; } = "en";
         public string formatLogger { get; set; } = "JSON";
+        public string businessSoftwareName { get; set; } = "";
+    }
+    //Business Software
+    public void SetBusinessSoftwareName(string softwareName)
+    {
+        /* 
+            Visibility : public
+            Input : string softwareName
+            Output : None
+            Description : Sets the name of the business software to monitor and saves the settings.
+        */
+        businessSoftwareName = softwareName?.Trim() ?? "";
+        SaveSettings();
     }
 }
