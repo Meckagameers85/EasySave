@@ -110,7 +110,7 @@ public class SaveTask
         foreach (var file in files)
         {
             // je veux faire un sleep de 4s
-            System.Threading.Thread.Sleep(1000);
+            // System.Threading.Thread.Sleep(1000);
             var relativePath = Path.GetRelativePath(sourceDirectory!, file);
             var destinationPath = Path.Combine(targetDirectory!, relativePath);
             var destinationDir = Path.GetDirectoryName(destinationPath);

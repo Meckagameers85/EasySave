@@ -7,10 +7,9 @@ EasySaveProject/logs/*
 EasySaveProject/saves.json
 EasySaveProject/settings.json
 EasySaveProject/state.json
+EasySaveProject/EasySave.sln
 
 Loggerlib/obj
 Loggerlib/obj/*
 Loggerlib/bin
 Loggerlib/bin/*
-.vs/*
-.fake
