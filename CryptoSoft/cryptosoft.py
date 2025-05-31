@@ -126,26 +126,58 @@ def main_cli():
     input("Appuyez sur \"entrée\" pour sortir...")
 
 # Main function 
-def main(config_path=SETTINGS_FILE, folder_override=None):
+def main(config_path=SETTINGS_FILE, mode=None, folder_override=None):
     # Function without print/input for program or GUI use
-    settings = load_settings(config_path)
+    import config_editor
+    settings = config_editor.load_settings(config_path)
     folder = folder_override or settings["watch_directory"]
     extensions = [e.lower() for e in settings["allowed_extensions"]]
+    allow_all = ".*" in extensions
 
     key_utils.ensure_keys_exist()
 
     files = get_files_to_encrypt(folder, extensions)
 
     results = []
-    for f in files:
-        try:
-            public_key_path, _ = get_key_paths()
-            encrypt_file.encrypt_file(f, public_key_path)
 
-            os.remove(f)
-            results.append((f, "OK"))
-        except Exception as e:
-            results.append((f, f"Erreur : {e}"))
+    if mode == "encode":
+        files = get_files_to_encrypt(folder, extensions)
+
+        if not files:
+            return "Aucun fichier à chiffrer."
+        for file_path in files:
+            try:
+                public_key_path, _ = get_key_paths()
+                encrypt_file.encrypt_file(file_path, public_key_path)
+                os.remove(file_path)
+                results.append((file_path, "OK"))
+            except Exception as e:
+                results.append((file_path, f"Erreur : {e}"))
+
+    elif mode == "decode":
+        encrypted_files = []
+        for root, _, filenames in os.walk(folder):
+            for name in filenames:
+                if not name.endswith(".enc"):
+                    continue
+                original_ext = os.path.splitext(os.path.splitext(name)[0])[1].lower()
+                if allow_all or original_ext in extensions:
+                    encrypted_files.append(os.path.join(root, name))
+
+        if not encrypted_files:
+            return "Aucun fichier à déchiffrer."
+        for file_name in encrypted_files:
+            try:
+                _, private_key_path = get_key_paths()
+                file_path = os.path.join(folder, file_name)
+                decrypt_file.decrypt_file(file_path, private_key_path)
+                os.remove(file_path)
+                results.append((file_path, "OK"))
+            except Exception as e:
+                results.append((file_path, f"Erreur : {e}"))
+
+    else:
+        return "Mode non reconnu. Utilisez 'encode' ou 'decode'."
 
     return results
 
