@@ -3,11 +3,11 @@ using EasySaveProject.ViewModels;
 
 namespace EasySaveProject.Views;
 
-public class MainMenuView
+public class CLIMainMenuView
 {
-    private readonly MenuViewModel _viewModel;
+    private readonly CLIMenuViewModel _viewModel;
 
-    public MainMenuView(MenuViewModel viewModel)
+    public CLIMainMenuView(CLIMenuViewModel viewModel)
     {
         _viewModel = viewModel;
     }

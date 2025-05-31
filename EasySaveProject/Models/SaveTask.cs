@@ -1,5 +1,6 @@
 using System.Text.Json;
 using EasySaveProject.Models;
+using System.IO;
 
 public enum SaveType
 {
@@ -34,7 +35,7 @@ public class SaveTask
         { "Differential", SaveType.Differential }
     };
 
-    public void SetSaveType(string setTypeVar) 
+    public void SetSaveType(string setTypeVar)
     {
         /*
             Visibility : public
@@ -42,11 +43,11 @@ public class SaveTask
             Output : None
             Description : Set the type of save based on the provided string.
         */
-        if (_stringToSaveType.TryGetValue(setTypeVar, out var saveType)) { type = saveType; } 
+        if (_stringToSaveType.TryGetValue(setTypeVar, out var saveType)) { type = saveType; }
         else { type = SaveType.Full; }
     }
 
-    public string GetSaveType() 
+    public string GetSaveType()
     {
         /*
             Visibility : public
@@ -119,10 +120,10 @@ public class SaveTask
             Output : None
             Description : Run the backup process for the current SaveTask object.
         */
-        
+
         // 🆕 AJOUT : Réinitialiser le ProcessMonitor au cas où les paramètres auraient changé
         InitializeProcessMonitor();
-        
+
         // 🆕 AJOUT : VÉRIFICATION AVANT DE COMMENCER (Scénario B)
         if (_processMonitor?.IsBusinessSoftwareRunning() == true)
         {
@@ -136,7 +137,7 @@ public class SaveTask
                 transferTimeMs = -1
             };
             s_logger?.Log(blockEntry);
-            
+
             Console.WriteLine($"🚫 SAUVEGARDE BLOQUÉE - Logiciel métier '{s_settingsManager?.businessSoftwareName}' détecté");
             // 🚫 REFUSE DE DÉMARRER - sortie immédiate
             return;
@@ -159,7 +160,7 @@ public class SaveTask
         {
 
             // je veux faire un sleep de 4s
-            // System.Threading.Thread.Sleep(1000);
+            System.Threading.Thread.Sleep(1000);
             // 🆕 VÉRIFICATION PENDANT LA SAUVEGARDE (Scénario C)
             if (_processMonitor?.IsBusinessSoftwareRunning() == true)
             {
@@ -174,7 +175,7 @@ public class SaveTask
                     transferTimeMs = -1 // Code d'arrêt
                 };
                 s_logger?.Log(stopEntry);
-                
+
                 Console.WriteLine($"⏹️ SAUVEGARDE INTERROMPUE - Logiciel métier '{s_settingsManager?.businessSoftwareName}' détecté");
                 // Arrêt immédiat de la sauvegarde
                 break;
@@ -183,19 +184,23 @@ public class SaveTask
             var relativePath = Path.GetRelativePath(sourceDirectory!, file);
             var destinationPath = Path.Combine(targetDirectory!, relativePath);
             var destinationDir = Path.GetDirectoryName(destinationPath);
-            var logEntry = new LoggerLib.LogEntry() {
+            var logEntry = new LoggerLib.LogEntry()
+            {
                 saveName = name ?? "Unnamed",
                 timestamp = DateTime.UtcNow
             };
 
-            if (!Directory.Exists(destinationDir)) {
+            if (!Directory.Exists(destinationDir))
+            {
                 var startTime = DateTime.UtcNow;
-                try {
+                try
+                {
                     Directory.CreateDirectory(destinationDir!);
                     var endTime = DateTime.UtcNow;
                     logEntry.transferTimeMs = (endTime - startTime).TotalMilliseconds;
                 }
-                catch {
+                catch
+                {
                     logEntry.transferTimeMs = -1;
                 }
                 logEntry.source = Path.Combine(sourceDirectory!, Path.GetDirectoryName(relativePath) ?? "");
@@ -203,7 +208,7 @@ public class SaveTask
                 logEntry.sizeBytes = 0;
                 s_logger?.Log(logEntry);
             }
-            
+
             logEntry.source = file;
             logEntry.destination = destinationPath;
             logEntry.sizeBytes = new FileInfo(file).Length;
@@ -211,7 +216,7 @@ public class SaveTask
 
             if (type == SaveType.Differential)
             {
-                if (!File.Exists(destinationPath) || 
+                if (!File.Exists(destinationPath) ||
                     File.GetLastWriteTimeUtc(file) > File.GetLastWriteTimeUtc(destinationPath))
                 {
                     shouldCopy = true;
@@ -221,12 +226,14 @@ public class SaveTask
             if (shouldCopy)
             {
                 var startTime = DateTime.UtcNow;
-                try {
+                try
+                {
                     File.Copy(file, destinationPath, true);
                     var endTime = DateTime.UtcNow;
                     logEntry.transferTimeMs = (endTime - startTime).TotalMilliseconds;
                 }
-                catch {
+                catch
+                {
                     logEntry.transferTimeMs = -1;
                 }
             }
@@ -250,7 +257,7 @@ public class SaveTask
             UpdateRealtimeState(state);
         }
 
-        var finalState = new SaveState 
+        var finalState = new SaveState
         {
             name = name ?? "Unnamed",
             sourceFilePath = "",
@@ -276,6 +283,7 @@ public class SaveTask
         */
         List<SaveState> states = new();
 
+        SaveState._mutex.WaitOne();
         if (File.Exists(s_stateFilePath))
         {
             try
@@ -304,5 +312,6 @@ public class SaveTask
         {
             // Erreur silencieuse pour ne pas interrompre la sauvegarde
         }
+        SaveState._mutex.ReleaseMutex();
     }
 }

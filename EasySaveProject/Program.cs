@@ -4,6 +4,7 @@ using EasySaveProject.Models;
 using System;
 using System.IO;
 
+namespace EasySaveProject;
 class Program
 {
     static void Main(string[] args)
@@ -59,8 +60,8 @@ class Program
         else
         {
             // Mode interactif
-            var viewModel = new MenuViewModel(settingsManager, languageManager, backupManager, logger);
-            var view = new MainMenuView(viewModel);
+            var viewModel = new CLIMenuViewModel(settingsManager, languageManager, backupManager, logger);
+            var view = new CLIMainMenuView(viewModel);
             view.Show();
         }
     }

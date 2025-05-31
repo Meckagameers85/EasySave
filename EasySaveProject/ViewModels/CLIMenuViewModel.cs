@@ -3,10 +3,11 @@ using Spectre.Console;
 using System.Collections.Generic;
 using System.Linq;
 using LoggerLib;
+using System.IO;
 
 namespace EasySaveProject.ViewModels;
 
-public class MenuViewModel
+public class CLIMenuViewModel
 {
     public List<ActionItem> actions { get; private set; }
 
@@ -15,13 +16,13 @@ public class MenuViewModel
     private readonly LanguageManager _languageManager;
     private readonly LoggerLib.Logger _logger;
 
-    public MenuViewModel(SettingsManager? settingsManager = null, LanguageManager? languageManager = null, BackupManager? backupManager = null, Logger? logger = null)
+    public CLIMenuViewModel(SettingsManager? settingsManager = null, LanguageManager? languageManager = null, BackupManager? backupManager = null, Logger? logger = null)
     {
         /*
             Visibility : public
             Input : None
             Output : None
-            Description : Constructor of the MenuViewModel class. Initializes the settings manager, language manager, backup manager, and logger.
+            Description : Constructor of the CLIMenuViewModel class. Initializes the settings manager, language manager, backup manager, and logger.
         */
         _settingsManager = settingsManager ?? SettingsManager.instance;
         _languageManager = languageManager ?? LanguageManager.instance;
