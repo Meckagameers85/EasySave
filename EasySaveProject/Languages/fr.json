@@ -66,5 +66,18 @@
   "show.selected": "Sauvegarde(s) sélectionnée(s)",
   "show.title": "Sélectionnez une ou plusieurs sauvegardes :",
   "title.action": "Choisir une action :",
-  "title.update": "Une nouvelle version est disponible :"
+  "title.update": "Une nouvelle version est disponible :",
+
+  "Backup.NewWindowTitle": "Nouvelle Sauvegarde",
+  "Backup.EditWindowTitle": "Modifier la Sauvegarde",
+  "Backup.CreateButtonText": "Créer",
+  "Backup.SaveButtonText": "Enregistrer",
+  "Backup.CancelButtonText": "Annuler",
+  "Backup.NameLabel": "Nom",
+  "Backup.SourcePathLabel": "Chemin Source",
+  "Backup.DestinationPathLabel": "Chemin Cible",
+  "Backup.TypeLabel": "Type",
+  "Backup.FullBackupOption": "Complète",
+  "Backup.DifferentialBackupOption": "Différentielle",
+  "Backup.EncryptLabel": "Chiffrer la Sauvegarde"
 }

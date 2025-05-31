@@ -66,5 +66,19 @@
   "show.selected": "Selected backup(s)",
   "show.title": "Select one or more backups:",
   "title.action": "Choose an action:",
-  "title.update": "A new version is available:"
+  "title.update": "A new version is available:",
+
+
+  "Backup.NewWindowTitle" : "New Backup",
+  "Backup.EditWindowTitle" : "Edit Backup",
+  "Backup.CreateButtonText" : "Create",
+  "Backup.SaveButtonText" : "Save",
+  "Backup.CancelButtonText" : "Cancel",
+  "Backup.NameLabel" : "Name",
+  "Backup.SourcePathLabel" : "Source Path",
+  "Backup.DestinationPathLabel" : "Target Path",
+  "Backup.TypeLabel" : "Type",
+  "Backup.FullBackupOption" : "Full",
+  "Backup.DifferentialBackupOption" : "Differential",
+  "Backup.EncryptLabel" : "Encrypt Backup"
 }
