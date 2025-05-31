@@ -1,15 +1,18 @@
 using System.IO;
 using Spectre.Console;
 using System.Text.Json;
+using LoggerLib;
 
 namespace EasySaveProject.Models;
 
 public class BackupManager
 {
+    private static readonly Lazy<BackupManager> _instance = new(() => new BackupManager());
+    public static BackupManager instance => _instance.Value;
     public List<SaveTask> saveTasks { get; set; }
     public string backupFile = "saves.json";
 
-    public BackupManager()
+    private BackupManager()
     {
         /*
             - Visibility : public
@@ -67,21 +70,43 @@ public class BackupManager
         SaveBackup();
     }
 
+    private static readonly SemaphoreSlim _semaphore = new(3, 3);
+
     public bool RunBackup(SaveTask saveTask)
     {
         /*
             - Visibility : public
             - Input : SaveTask saveTask
             - Output : bool 
-            - Description : Run the backup process for the given SaveTask.
+            - Description : Run the backup process for the given SaveTask. Uses a semaphore to prevent concurrent access.
         */
         if (string.IsNullOrEmpty(saveTask.sourceDirectory) || string.IsNullOrEmpty(saveTask.targetDirectory))
         {
             return false;
         }
 
-        AnsiConsole.MarkupLine($"[green]{saveTask.WayToString()}[/]");
-        saveTask.Run();
+        _semaphore.Wait();
+        try
+        {
+            // Create a new thread to run the backup task
+            Thread t = new Thread(() =>
+            {
+                try
+                {
+                    saveTask.Run();
+                    AnsiConsole.MarkupLine($"[green]{saveTask.WayToString()}[/]");
+                }
+                catch (Exception ex)
+                {
+                    AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
+                }
+            });
+            t.Start();  
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
         return true;
     }
     

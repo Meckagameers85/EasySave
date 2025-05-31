@@ -13,9 +13,9 @@ public class MenuViewModel
     private readonly BackupManager _backupManager;
     private readonly SettingsManager _settingsManager;
     private readonly LanguageManager _languageManager;
-    private readonly Logger _logger;
+    private readonly LoggerLib.Logger _logger;
 
-    public MenuViewModel()
+    public MenuViewModel(SettingsManager? settingsManager = null, LanguageManager? languageManager = null, BackupManager? backupManager = null, Logger? logger = null)
     {
         /*
             Visibility : public
@@ -23,12 +23,13 @@ public class MenuViewModel
             Output : None
             Description : Constructor of the MenuViewModel class. Initializes the settings manager, language manager, backup manager, and logger.
         */
-        _settingsManager = new SettingsManager();
-        _languageManager = new LanguageManager();
+        _settingsManager = settingsManager ?? SettingsManager.instance;
+        _languageManager = languageManager ?? LanguageManager.instance;
         _languageManager.Load(_settingsManager.currentLanguage);
-        _backupManager = new BackupManager();
-        _logger = new Logger("logs", _settingsManager.formatLogger);
-        SaveTask.s_logger = _logger;        
+        _backupManager = backupManager ?? BackupManager.instance;
+        _logger = logger ?? new LoggerLib.Logger("logs", _settingsManager.formatLogger);
+        SaveTask.s_logger = _logger;
+        SaveTask.s_settingsManager = _settingsManager;
 
         actions = new List<ActionItem>
         {
@@ -76,11 +77,12 @@ public class MenuViewModel
             var option = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title(_languageManager.Translate("settings.title"))
-                    .PageSize(5)
+                    .PageSize(6)
                     .AddChoices(new[]
                     {
                         _languageManager.Translate("settings.language"),
                         _languageManager.Translate("settings.format"),
+                        "Logiciel métier",
                         _languageManager.Translate("menu.quit")
                     }));
 
@@ -148,6 +150,10 @@ public class MenuViewModel
                 RefreshActions();
                 return _languageManager.Translate("format.set") + " " + _languageManager.Translate($"format.{formatCode.ToLower()}");
             }
+            else if (option == "Logiciel métier")  // 🆕 NOUVEAU MENU
+            {
+                return ShowBusinessSoftwareSettings();
+            }
             else if (option == _languageManager.Translate("menu.quit"))
             {
                 break;
@@ -155,6 +161,64 @@ public class MenuViewModel
         }
 
         return "";
+    }
+
+    // Ajout de la fonction ShowBusinessSoftwareSettings, pour configurer le logiciel métier
+    private string ShowBusinessSoftwareSettings()
+    {
+        /*
+            Visibility : private
+            Input : None
+            Output : string
+            Description : Shows business software settings for process monitoring.
+        */
+        AnsiConsole.MarkupLine($"[green]Logiciel métier actuel: '{_settingsManager.businessSoftwareName}'[/]");
+        
+        var action = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Configuration du logiciel métier")
+                .AddChoices(new[]
+                {
+                    "Changer le logiciel métier",
+                    "Tester la détection", 
+                    "Désactiver la surveillance",
+                    _languageManager.Translate("menu.quit")
+                }));
+
+        if (action == "Changer le logiciel métier")
+        {
+            var processName = AnsiConsole.Ask<string>("Nom du processus à surveiller (ex: calc, notepad):");
+            _settingsManager.SetBusinessSoftwareName(processName);
+            AnsiConsole.MarkupLine($"[green]Logiciel métier défini: '{processName}'[/]");
+        }
+        else if (action == "Tester la détection")
+        {
+            var monitor = new ProcessMonitor(_settingsManager.businessSoftwareName);
+            var isRunning = monitor.IsBusinessSoftwareRunning();
+            var runningProcesses = monitor.GetRunningBusinessSoftwareProcesses();
+            
+            AnsiConsole.MarkupLine($"[blue]Logiciel '{_settingsManager.businessSoftwareName}' en cours: {isRunning}[/]");
+            if (runningProcesses.Count > 0)
+            {
+                AnsiConsole.MarkupLine($"[blue]Processus trouvés:[/]");
+                foreach (var process in runningProcesses)
+                {
+                    AnsiConsole.MarkupLine($"  - {process}");
+                }
+            }
+            
+            if (!isRunning && _settingsManager.businessSoftwareName == "calc")
+            {
+                AnsiConsole.MarkupLine("\n[yellow]💡 Ouvrez la calculatrice Windows pour tester![/]");
+            }
+        }
+        else if (action == "Désactiver la surveillance")
+        {
+            _settingsManager.SetBusinessSoftwareName("");
+            AnsiConsole.MarkupLine($"[green]Surveillance désactivée[/]");
+        }
+        
+        return "Configuration du logiciel métier mise à jour";
     }
 
     private void RefreshActions()
@@ -206,8 +270,29 @@ public class MenuViewModel
         }
 
         save.targetDirectory = AnsiConsole.Ask<string>(_languageManager.Translate("create.destPath"));
-        while (!Directory.Exists(save.targetDirectory))
+        while (true)
         {
+            bool isValid = true;
+
+            if (string.IsNullOrWhiteSpace(save.targetDirectory)) {
+                isValid = false;
+            }
+            else {
+                try {
+                    foreach (char c in Path.GetInvalidPathChars()) {
+                        if (save.targetDirectory.Contains(c)) {
+                            isValid = false;
+                            break;
+                        }
+                    }
+                }
+                catch {
+                    isValid = false;
+                }
+            }
+
+            if (isValid) break;
+
             AnsiConsole.MarkupLine($"[red]{_languageManager.Translate("create.errorPath")}[/]");
             save.targetDirectory = AnsiConsole.Ask<string>(_languageManager.Translate("create.destPath"));
         }
@@ -458,8 +543,28 @@ public class MenuViewModel
                     else if (editSelected == _languageManager.Translate("backup.target"))
                     {
                         backupToEdit.targetDirectory = AnsiConsole.Ask<string>(_languageManager.Translate("edit.newTarget"));
-                        while (!Directory.Exists(backupToEdit.targetDirectory))
+                        while (true)
                         {
+                            bool isValid = true;
+
+                            if (string.IsNullOrWhiteSpace(backupToEdit.targetDirectory)) {
+                                isValid = false;
+                            }
+                            else {
+                                try {
+                                    foreach (char c in Path.GetInvalidPathChars()) {
+                                        if (backupToEdit.targetDirectory.Contains(c)) {
+                                            isValid = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                                catch {
+                                    isValid = false;
+                                }
+                            }
+
+                            if (isValid) break;
                             AnsiConsole.MarkupLine($"[red]{_languageManager.Translate("create.errorPath")}[/]");
                             backupToEdit.targetDirectory = AnsiConsole.Ask<string>(_languageManager.Translate("create.destPath"));
                         }

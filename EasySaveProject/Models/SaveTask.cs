@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EasySaveProject.Models;
 
 public enum SaveType
 {
@@ -11,6 +12,9 @@ public class SaveTask
     public string? name { get; set; }
     public string? sourceDirectory { get; set; }
     public string? targetDirectory { get; set; }
+
+    public static SettingsManager? s_settingsManager { get; set; }
+    private ProcessMonitor? _processMonitor;
 
     public SaveType? type { get; set; }
 
@@ -30,7 +34,8 @@ public class SaveTask
         { "Differential", SaveType.Differential }
     };
 
-    public void SetSaveType(string setTypeVar) {
+    public void SetSaveType(string setTypeVar) 
+    {
         /*
             Visibility : public
             Input : string setTypeVar
@@ -41,7 +46,8 @@ public class SaveTask
         else { type = SaveType.Full; }
     }
 
-    public string GetSaveType() {
+    public string GetSaveType() 
+    {
         /*
             Visibility : public
             Input : None
@@ -64,6 +70,23 @@ public class SaveTask
         this.targetDirectory = targetDirectory;
         this.name = name;
         this.type = type;
+
+        // 🔄 CORRECTION : Initialisation plus robuste du ProcessMonitor
+        InitializeProcessMonitor();
+    }
+
+    // 🆕 NOUVELLE méthode pour initialiser le ProcessMonitor
+    private void InitializeProcessMonitor()
+    {
+        if (s_settingsManager != null)
+        {
+            _processMonitor = new ProcessMonitor(s_settingsManager.businessSoftwareName);
+            Console.WriteLine($"[DEBUG] ProcessMonitor initialisé avec: '{s_settingsManager.businessSoftwareName}'");
+        }
+        else
+        {
+            Console.WriteLine("[DEBUG] s_settingsManager est null - ProcessMonitor non initialisé");
+        }
     }
 
     public override string ToString()
@@ -74,7 +97,7 @@ public class SaveTask
             Output : string
             Description : Get a string representation of the SaveTask object.
         */
-        return $"[bold]{name}[/] ({GetType()}): \"{sourceDirectory}\" ==> \"{targetDirectory}\"";
+        return $"[bold]{name}[/] ({GetSaveType()}): \"{sourceDirectory}\" ==> \"{targetDirectory}\"";
     }
 
     public string WayToString()
@@ -96,6 +119,29 @@ public class SaveTask
             Output : None
             Description : Run the backup process for the current SaveTask object.
         */
+        
+        // 🆕 AJOUT : Réinitialiser le ProcessMonitor au cas où les paramètres auraient changé
+        InitializeProcessMonitor();
+        
+        // 🆕 AJOUT : VÉRIFICATION AVANT DE COMMENCER (Scénario B)
+        if (_processMonitor?.IsBusinessSoftwareRunning() == true)
+        {
+            var blockEntry = new LoggerLib.LogEntry
+            {
+                timestamp = DateTime.UtcNow,
+                saveName = name ?? "Unnamed",
+                source = "BACKUP_BLOCKED",
+                destination = $"Backup refused - Business software running: {s_settingsManager?.businessSoftwareName}",
+                sizeBytes = 0,
+                transferTimeMs = -1
+            };
+            s_logger?.Log(blockEntry);
+            
+            Console.WriteLine($"🚫 SAUVEGARDE BLOQUÉE - Logiciel métier '{s_settingsManager?.businessSoftwareName}' détecté");
+            // 🚫 REFUSE DE DÉMARRER - sortie immédiate
+            return;
+        }
+
         if (!Directory.Exists(sourceDirectory))
             return;
 
@@ -107,8 +153,33 @@ public class SaveTask
         long totalSize = files.Sum(f => new FileInfo(f).Length);
         int filesRemaining = totalFiles;
 
+        Console.WriteLine($"✅ Démarrage sauvegarde - {totalFiles} fichiers à traiter");
+
         foreach (var file in files)
         {
+
+            // je veux faire un sleep de 4s
+            // System.Threading.Thread.Sleep(1000);
+            // 🆕 VÉRIFICATION PENDANT LA SAUVEGARDE (Scénario C)
+            if (_processMonitor?.IsBusinessSoftwareRunning() == true)
+            {
+                // Log de l'arrêt dans le fichier de log
+                var stopEntry = new LoggerLib.LogEntry
+                {
+                    timestamp = DateTime.UtcNow,
+                    saveName = name ?? "Unnamed",
+                    source = file,
+                    destination = $"STOPPED - Business software detected: {s_settingsManager?.businessSoftwareName}",
+                    sizeBytes = 0,
+                    transferTimeMs = -1 // Code d'arrêt
+                };
+                s_logger?.Log(stopEntry);
+                
+                Console.WriteLine($"⏹️ SAUVEGARDE INTERROMPUE - Logiciel métier '{s_settingsManager?.businessSoftwareName}' détecté");
+                // Arrêt immédiat de la sauvegarde
+                break;
+            }
+
             var relativePath = Path.GetRelativePath(sourceDirectory!, file);
             var destinationPath = Path.Combine(targetDirectory!, relativePath);
             var destinationDir = Path.GetDirectoryName(destinationPath);
@@ -131,8 +202,8 @@ public class SaveTask
                 logEntry.destination = destinationDir;
                 logEntry.sizeBytes = 0;
                 s_logger?.Log(logEntry);
-
             }
+            
             logEntry.source = file;
             logEntry.destination = destinationPath;
             logEntry.sizeBytes = new FileInfo(file).Length;
@@ -152,7 +223,6 @@ public class SaveTask
                 var startTime = DateTime.UtcNow;
                 try {
                     File.Copy(file, destinationPath, true);
-
                     var endTime = DateTime.UtcNow;
                     logEntry.transferTimeMs = (endTime - startTime).TotalMilliseconds;
                 }
@@ -178,8 +248,6 @@ public class SaveTask
             };
 
             UpdateRealtimeState(state);
-
-            Thread.Sleep(1000);
         }
 
         var finalState = new SaveState 
@@ -195,6 +263,7 @@ public class SaveTask
         };
 
         UpdateRealtimeState(finalState);
+        Console.WriteLine("✅ Sauvegarde terminée");
     }
 
     private void UpdateRealtimeState(SaveState currentState)
@@ -209,8 +278,15 @@ public class SaveTask
 
         if (File.Exists(s_stateFilePath))
         {
-            var json = File.ReadAllText(s_stateFilePath);
-            states = JsonSerializer.Deserialize<List<SaveState>>(json) ?? new List<SaveState>();
+            try
+            {
+                var json = File.ReadAllText(s_stateFilePath);
+                states = JsonSerializer.Deserialize<List<SaveState>>(json) ?? new List<SaveState>();
+            }
+            catch
+            {
+                states = new List<SaveState>();
+            }
         }
 
         var index = states.FindIndex(s => s.name == currentState.name);
@@ -219,7 +295,14 @@ public class SaveTask
         else
             states.Add(currentState);
 
-        var updatedJson = JsonSerializer.Serialize(states, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(s_stateFilePath, updatedJson);
+        try
+        {
+            var updatedJson = JsonSerializer.Serialize(states, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(s_stateFilePath, updatedJson);
+        }
+        catch
+        {
+            // Erreur silencieuse pour ne pas interrompre la sauvegarde
+        }
     }
 }
