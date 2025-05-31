@@ -1,0 +1,104 @@
+<Window x:Class="EasySaveProject.SettingsCryptoSoftWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Settings"
+        Height="200"
+        Width="400"
+        Background="Gray"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Closed="Window_Closed">
+
+    <!-- Resources : Style pour les boutons arrondis -->
+    <Window.Resources>
+        <Style x:Key="RoundedButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="LightGray"/>
+            <Setter Property="BorderBrush" Value="Gray"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <!-- Contenu principal -->
+    <Grid>
+
+        <!-- Barre supérieure (drag + fermeture) -->
+        <Grid Height="40" VerticalAlignment="Top" MouseDown="Window_MouseDown">
+            <TextBlock Text="CryptoSoft Settings"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Foreground="White"/>
+            <Button Content="✖"
+                    Width="30"
+                    Height="30"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0"
+                    Background="Transparent"
+                    Foreground="White"
+                    FontWeight="Bold"
+                    BorderThickness="0"
+                    Click="Close_Click"/>
+        </Grid>
+
+        <!-- Contenu central -->
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" >
+            <Border Background="#888" CornerRadius="15" Padding="10,0,5,0" Margin="0,5" Height="40" Width="360">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="60"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Type :" VerticalAlignment="Center" Foreground="White"/>
+                    <ComboBox x:Name="TypeComboBox"
+                              Grid.Column="1"
+                              Width="160"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Left">
+                        <ComboBoxItem Uid="RSA" >RSA</ComboBoxItem>
+                        <!-- <ComboBoxItem Uid="xor">XOR</ComboBoxItem> -->
+                    </ComboBox>
+                </Grid>
+            </Border>
+            <Border Background="#888" CornerRadius="15" Padding="10,0,5,0" Margin="0,5" Height="40" Width="360">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="60"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="100" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Extensions :" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBox Grid.Column="1" Height="25" Width="160" Margin="0"></TextBox>
+                    <TextBlock Grid.Column="2" Text="Ex: .pdf, .docx, .txt" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <!-- Boutons d'action -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,10">
+            <Button Content="Save" Width="60" Margin="5" Click="Save_Click" Style="{StaticResource RoundedButtonStyle}"/>
+            <Button Content="Reset All" Width="80" Margin="5" Click="Reset_Click" Style="{StaticResource RoundedButtonStyle}"/>
+        </StackPanel>
+    </Grid>
+</Window>

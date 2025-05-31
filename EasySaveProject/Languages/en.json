@@ -80,5 +80,16 @@
   "Backup.TypeLabel" : "Type",
   "Backup.FullBackupOption" : "Full",
   "Backup.DifferentialBackupOption" : "Differential",
-  "Backup.EncryptLabel" : "Encrypt Backup"
+  "Backup.EncryptLabel" : "Encrypt Backup",
+
+  "Settings.SaveButtonText" : "Save",
+  "Settings.ResetButtonText" : "Reset",
+  "Settings.LanguageLabel" : "Language",
+  "Settings.businessSoftwareNameLabel": "Business Software Name",
+  "Settings.FormatLabel" : "Format",
+  "ConfirmDeleteBackup": "Are you sure you want to delete this backup?",
+  "DeleteBackup": "Delete Backup",
+  "DeleteSelectedBackupsConfirmation": "Are you sure you want to delete the selected backups:",
+  "Confirmation": "Confirmation",
+  "NoBackupsSelected": "No backups selected"
 }
