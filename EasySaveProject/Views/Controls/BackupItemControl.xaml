@@ -1,35 +1,161 @@
 <UserControl x:Class="EasySaveProject.Controls.BackupItemControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Height="120" Width="700">
+             xmlns:local="clr-namespace:EasySaveProject.Controls"
+             Height="170" Width="700">
+    
+    <!-- Ressources avec le convertisseur -->
+    <UserControl.Resources>
+        <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+        
+        <Style x:Key="ControlButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="5"
+                                Padding="5">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#40FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#20FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="True">
+                                <Setter Property="Background" Value="#20FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Border Background="#666" CornerRadius="15" Padding="10" Margin="5">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                        <Setter Property="Background" Value="#4A4A4A"/>
+                        <Setter Property="BorderBrush" Value="LightGreen"/>
+                        <Setter Property="BorderThickness" Value="2"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+        
         <StackPanel>
             <!-- Header -->
             <DockPanel>
-                <CheckBox Width="20" VerticalAlignment="Center" IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"/>
-                <TextBlock Name="BackupName" Text="{Binding BackupName, UpdateSourceTrigger=PropertyChanged}" FontSize="16" Foreground="White" VerticalAlignment="Center" Margin="10,0"/>
+                <CheckBox Width="20" 
+                          VerticalAlignment="Center" 
+                          IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" 
+                          IsEnabled="{Binding IsRunning, Converter={StaticResource InverseBooleanConverter}}"/>
+                <TextBlock Name="BackupName" 
+                           Text="{Binding BackupName, UpdateSourceTrigger=PropertyChanged}" 
+                           FontSize="16" 
+                           Foreground="White" 
+                           VerticalAlignment="Center" 
+                           Margin="10,0"/>
                 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <!-- Play -->
-                    <Button Name="BackupPlayButton" Width="30" Height="30" Margin="3" ToolTip="Start" Command="{Binding StartBackupCommand}">
-                        <Path Data="M 0 0 L 10 5 L 0 10 Z" Fill="White"/>
+                    <Button Name="BackupPlayButton" 
+                            Width="30" 
+                            Height="30" 
+                            Margin="3" 
+                            ToolTip="Start" 
+                            Command="{Binding StartBackupCommand}"
+                            Style="{StaticResource ControlButtonStyle}">
+                        <Path Data="M 0 0 L 10 5 L 0 10 Z" Fill="LightGreen"/>
                     </Button>
                     <!-- Pause -->
-                    <Button Name="BackupPauseButton" Width="30" Height="30" Margin="3" ToolTip="Pause" IsEnabled="False">
-                        <Path Data="M2,0 H6 V10 H2 Z M8,0 H12 V10 H8 Z" Fill="White"/>
+                    <Button Name="BackupPauseButton" 
+                            Width="30" 
+                            Height="30" 
+                            Margin="3" 
+                            ToolTip="Pause" 
+                            Command="{Binding PauseBackupCommand}"
+                            Style="{StaticResource ControlButtonStyle}">
+                        <Path Data="M2,0 H6 V10 H2 Z M8,0 H12 V10 H8 Z" Fill="Gold"/>
+                    </Button>
+                    <!-- Resume -->
+                    <Button Name="BackupResumeButton" 
+                            Width="30" 
+                            Height="30" 
+                            Margin="3" 
+                            ToolTip="Resume" 
+                            Command="{Binding ResumeBackupCommand}"
+                            Style="{StaticResource ControlButtonStyle}">
+                        <Path Data="M 0 0 L 10 5 L 0 10 Z" Fill="Orange"/>
                     </Button>
                     <!-- Stop -->
-                    <Button Name="BackupStopButton" Width="30" Height="30" Margin="3" ToolTip="Stop" IsEnabled="False">
-                        <Path Data="M2,2 H10 V10 H2 Z" Fill="White"/>
+                    <Button Name="BackupStopButton" 
+                            Width="30" 
+                            Height="30" 
+                            Margin="3" 
+                            ToolTip="Stop" 
+                            Command="{Binding StopBackupCommand}"
+                            Style="{StaticResource ControlButtonStyle}">
+                        <Path Data="M2,2 H10 V10 H2 Z" Fill="Tomato"/>
                     </Button>
                     <!-- Edit -->
-                    <Button Name="BackupEditButton" Width="30" Height="30" Margin="3" ToolTip="Edit" Command="{Binding EditBackupCommand}">
-                        <Path Data="M3,17 L3,14 L14,3 L17,6 L6,17 Z M2,20 L20,20 L20,22 L2,22 Z" Fill="White"/>
+                    <Button Name="BackupEditButton" 
+                            Width="30" 
+                            Height="30" 
+                            Margin="3" 
+                            ToolTip="Edit" 
+                            Command="{Binding EditBackupCommand}"
+                            Style="{StaticResource ControlButtonStyle}">
+                        <Path Data="M3,17 L3,14 L14,3 L17,6 L6,17 Z M2,20 L20,20 L20,22 L2,22 Z" Fill="SkyBlue"/>
                     </Button>
                     <!-- Delete -->
-                    <Button Name="BackupDeleteButton" Width="30" Height="30" Margin="3" ToolTip="Delete" Command="{Binding DeleteBackupCommand}">🗑</Button>
+                    <Button Name="BackupDeleteButton" 
+                            Width="30" 
+                            Height="30" 
+                            Margin="3" 
+                            ToolTip="Delete" 
+                            Command="{Binding DeleteBackupCommand}"
+                            Style="{StaticResource ControlButtonStyle}">
+                        <Path Data="M3,6 L5,6 L5,4 C5,3.45 5.45,3 6,3 L10,3 C10.55,3 11,3.45 11,4 L11,6 L13,6 L13,8 L3,8 L3,6 Z M4,9 L12,9 L11.5,16 C11.5,16.55 11.05,17 10.5,17 L5.5,17 C4.95,17 4.5,16.55 4.5,16 L4,9 Z" Fill="LightCoral"/>
+                    </Button>
                 </StackPanel>
             </DockPanel>
+
+            <!-- Barre de progression -->
+            <StackPanel Margin="0,10,0,5">
+                <Grid>
+                    <ProgressBar Height="20"
+                                 Value="{Binding ProgressPercentage}"
+                                 Maximum="100"
+                                 Background="#333"
+                                 Foreground="LightGreen"
+                                 BorderBrush="Gray"
+                                 BorderThickness="1"/>
+                    <TextBlock Text="{Binding ProgressPercentage, StringFormat={}{0:F1}%}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="White"
+                               FontWeight="Bold"
+                               FontSize="11"/>
+                </Grid>
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="LightGray"
+                           FontSize="10"
+                           Margin="0,3,0,0"/>
+            </StackPanel>
+
             <!-- Details -->
             <Grid Margin="0,5,0,0">
                 <Grid.ColumnDefinitions>
