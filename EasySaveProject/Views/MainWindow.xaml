@@ -6,7 +6,42 @@
         xmlns:local="clr-namespace:EasySaveProject"
         mc:Ignorable="d"
         ResizeMode="NoResize"
-        Title="MainWindow" Height="540" Width="920">
+        Title="EasySave" Height="540" Width="920"
+        WindowStartupLocation="CenterScreen"
+        >
+    <Window.Resources>
+        <DrawingImage x:Key="CryptoSoftLogo">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <!-- Arceau du cadenas -->
+                    <GeometryDrawing Brush="#0073B7">
+                        <GeometryDrawing.Geometry>
+                            <PathGeometry>
+                                <PathFigure StartPoint="60,50">
+                                    <ArcSegment Point="140,50" Size="40,40" SweepDirection="Clockwise"/>
+                                    <LineSegment Point="140,80"/>
+                                    <LineSegment Point="120,80"/>
+                                    <LineSegment Point="120,50"/>
+                                    <ArcSegment Point="80,50" Size="20,20" SweepDirection="Counterclockwise"/>
+                                    <LineSegment Point="80,80"/>
+                                    <LineSegment Point="60,80"/>
+                                    <LineSegment Point="60,50"/>
+                                </PathFigure>
+                            </PathGeometry>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+
+                    <!-- Corps du cadenas -->
+                    <GeometryDrawing Brush="#0073B7">
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="40,80,120,100" RadiusX="10" RadiusY="10"/>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+    </Window.Resources>
+
 <Grid Margin="10">
     <Grid.RowDefinitions>
         <RowDefinition Height="80"/>
@@ -17,24 +52,41 @@
         <Grid Grid.Row="0">
             <TextBlock Text="EasySave" FontSize="48" FontWeight="Bold" 
                        HorizontalAlignment="Center" VerticalAlignment="Top"/>
-            <Button Name="SettingsCryptoSoftButton" Width="32" Height="32"
-                    Content="CS S"
-                    HorizontalAlignment="Right" VerticalAlignment="Top"
+            <Button Name="SettingsCryptoSoftButton"
+                    Width="32" Height="32"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
                     Click="SettingsCrytoSoftButton_Click"
-                    Margin="0,10,55,0"></Button>
-            <Button Name="SettingsButton" Content="S" Width="32" Height="32"
-                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Margin="0,10,55,0"
+                    Background="Transparent"
+                    BorderBrush="Transparent">
+                <Image Width="32" Height="32" Source="{StaticResource CryptoSoftLogo}"/>
+            </Button>
+
+            <Button Name="SettingsButton"
+                    Width="32" Height="32"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
                     Click="SettingsButton_Click"
-                    Margin="0,10,10,0"></Button>
+                    Margin="0,10,10,0"
+                    Background="Transparent"
+                    BorderBrush="Transparent"
+                    ToolTip="Settings">
+                <StackPanel>
+                    <Rectangle Height="4" Width="24" Fill="Black" RadiusX="2" RadiusY="2" Margin="0,2"/>
+                    <Rectangle Height="4" Width="24" Fill="Black" RadiusX="2" RadiusY="2" Margin="0,2"/>
+                    <Rectangle Height="4" Width="24" Fill="Black" RadiusX="2" RadiusY="2" Margin="0,2"/>
+                </StackPanel>
+            </Button>
         </Grid>
         <!-- Boutons globaux -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left">
-            <Button Content="Select All" Margin="10" Padding="10,0" Command="{Binding SelectAllBackupCommand}"/>
-            <Button Content="Delete" Margin="10" Padding="10,0" Command="{Binding DeleteSelectedBackupsCommand}"/>
-            <Button Content="Execute" Margin="10" Padding="10,0" Command="{Binding ExecuteSelectedBackupsCommand}"/>
+            <Button Content="{Binding selectAllBackupButtonText, UpdateSourceTrigger=PropertyChanged}" Margin="10" Padding="10,0" Command="{Binding SelectAllBackupCommand}"/>
+            <Button Content="{Binding deleteSelectedBackupsButtonText, UpdateSourceTrigger=PropertyChanged}" Margin="10" Padding="10,0" Command="{Binding DeleteSelectedBackupsCommand}"/>
+            <Button Content="{Binding executeSelectedBackupsButtonText, UpdateSourceTrigger=PropertyChanged}" Margin="10" Padding="10,0" Command="{Binding ExecuteSelectedBackupsCommand}"/>
         </StackPanel>
         <StackPanel Grid.Row="1" Name="NewButton" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="New" Margin="10" Padding="10,0" Click="NewButton_Click"/>
+            <Button Content="{Binding newBackupButtonText, UpdateSourceTrigger=PropertyChanged}" Margin="10" Padding="10,0" Click="NewButton_Click"/>
         </StackPanel>
         <!-- Liste des sauvegardes -->
         <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Padding="0 10" Background="#F0F0F0">

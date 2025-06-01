@@ -36,7 +36,6 @@ namespace EasySaveProject.ViewModels
             SaveTask.s_settingsManager = _settingsManager;
             SaveTask.s_cryptoSoftManager = _cryptoSoftManager;
 
-
             SelectAllBackupCommand = new RelayCommand(SelectAllBackups);
             DeleteSelectedBackupsCommand = new RelayCommand(DeleteSelectedBackups);
             ExecuteSelectedBackupsCommand = new RelayCommand(ExecuteSelectedBackups);
@@ -76,6 +75,20 @@ namespace EasySaveProject.ViewModels
                 .ToList();
             
             _isAllSelected = selectableItems.Count > 0 && selectedSelectableItems.Count == selectableItems.Count;
+            OnPropertyChanged(nameof(selectAllBackupButtonText));
+        }
+
+        public string selectAllBackupButtonText => _isAllSelected ? _languageManager.Translate("Backup.DeselectAllButtonText") : _languageManager.Translate("Backup.SelectAllButtonText");
+        public string deleteSelectedBackupsButtonText => _languageManager.Translate("Backup.DeleteSelectedButtonText");
+        public string executeSelectedBackupsButtonText => _languageManager.Translate("Backup.ExecuteSelectedButtonText");
+        public string newBackupButtonText => _languageManager.Translate("Backup.NewBackupButtonText");
+        
+        public void ReloadTexts()
+        {
+            OnPropertyChanged(nameof(selectAllBackupButtonText));
+            OnPropertyChanged(nameof(deleteSelectedBackupsButtonText));
+            OnPropertyChanged(nameof(executeSelectedBackupsButtonText));
+            OnPropertyChanged(nameof(newBackupButtonText));
         }
 
         private bool _isAllSelected;

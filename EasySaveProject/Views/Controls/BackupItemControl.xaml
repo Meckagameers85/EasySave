@@ -169,19 +169,19 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Column="0" Grid.Row="0" Foreground="White">
-                    <TextBlock Text="Source: "/>
+                    <TextBlock Text="{Binding sourceDirectoryLabel, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Name="BackupSourcePath" Text="{Binding BackupSource, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" Width="600"/>
                 </TextBlock>
                 <TextBlock Grid.Column="0" Grid.Row="2" Foreground="White">
-                    <TextBlock Text="Target: "/>
+                    <TextBlock Text="{Binding targetDirectoryLabel, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Name="BackupTargetPath" Text="{Binding BackupTarget, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold"/>
                 </TextBlock>
                 <TextBlock Grid.Column="2" Grid.Row="0" Foreground="White">
-                    <TextBlock Text="Type: "/>
+                    <TextBlock Text="{Binding TypeLabel, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Name="BackupType" Text="{Binding BackupType, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold"/>
                 </TextBlock>
                 <TextBlock Grid.Column="2" Grid.Row="2" Foreground="White">
-                    <TextBlock Text="Cryptage: "/>
+                    <TextBlock Text="{Binding EncryptLabel, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Name="BackupEncryptType" Text="{Binding IsBackupEncrypted, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold"/>
                 </TextBlock>
             </Grid>

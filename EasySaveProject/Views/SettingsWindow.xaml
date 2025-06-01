@@ -179,30 +179,13 @@
                     Width="360">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="80"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-
-                    <TextBlock Text="{Binding BusinessSoftwareNameLabel, UpdateSourceTrigger=PropertyChanged}"
-                            VerticalAlignment="Center"
-                            Foreground="White"/>
-                    <TextBox Grid.Column="1"
-                            x:Name="businessSoftwareNameBox"
-                            Width="160"
-                            Height="25"
-                            Margin="0"
-                            VerticalContentAlignment="Center"
-                            Text="{Binding BusinessSoftwareName, UpdateSourceTrigger=PropertyChanged}"/>
-                    <Button Grid.Column="2"
-                            x:Name="businessSoftwareTestButton"
-                            Content="Test"
-                            Width="30"
-                            Height="25"
-                            Margin="0,0,5,0"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Right"
-                            Command="{Binding TestBusinessSoftwareCommand}"/>
+                    <TextBlock Text="{Binding BusinessSoftwareNameLabel, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBox Grid.Column="1" x:Name="businessSoftwareNameBox" Width="160" Height="25" VerticalContentAlignment="Center" Text="{Binding BusinessSoftwareName, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Grid.Column="2" x:Name="businessSoftwareTestButton" Content="{Binding TestBusinessSoftwareButtonText, UpdateSourceTrigger=PropertyChanged}" Width="Auto" Padding="5,2" Height="25" Margin="0,0,5,0" VerticalAlignment="Center" HorizontalAlignment="Right" Command="{Binding TestBusinessSoftwareCommand}"/>
                 </Grid>
             </Border>
         </StackPanel>
@@ -213,16 +196,8 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Bottom"
                     Margin="0,0,0,10">
-            <Button Content="Save"
-                    Width="60"
-                    Margin="5"
-                    Style="{StaticResource RoundedButtonStyle}"
-                    Command="{Binding SaveCommand}"/>
-            <Button Content="Reset All"
-                    Width="80"
-                    Margin="5"
-                    Style="{StaticResource RoundedButtonStyle}"
-                    Command="{Binding ResetCommand}"/>
+            <Button Content="{Binding SaveSettingsButtonText, UpdateSourceTrigger=PropertyChanged}" Width="Auto" Padding="5,2" Margin="5" Style="{StaticResource RoundedButtonStyle}" Command="{Binding SaveCommand}"/>
+            <Button Content="{Binding ResetSettingsButtonText, UpdateSourceTrigger=PropertyChanged}" Width="Auto" Padding="5,2" Margin="5" Style="{StaticResource RoundedButtonStyle}" Command="{Binding ResetCommand}"/>
         </StackPanel>
     </Grid>
 </Window>

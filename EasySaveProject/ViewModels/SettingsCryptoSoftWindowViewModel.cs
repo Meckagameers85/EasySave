@@ -8,6 +8,7 @@ namespace EasySaveProject.ViewModels;
 public class SettingsCryptosoftWindowViewModel : INotifyPropertyChanged
 {
     private readonly CryptoSoftManager _cryptoSoftManager;
+    private readonly LanguageManager _languageManager;
     public event Action? RequestClose;
     public event PropertyChangedEventHandler? PropertyChanged;
     public ICommand SaveCommand { get; }
@@ -17,6 +18,7 @@ public class SettingsCryptosoftWindowViewModel : INotifyPropertyChanged
     public SettingsCryptosoftWindowViewModel()
     {
         _cryptoSoftManager = CryptoSoftManager.instance;
+        _languageManager = LanguageManager.instance;
         _allowedExtensionsText = string.Join(", ", _cryptoSoftManager.Settings.extensions);
         SaveCommand = new RelayCommand(() =>
         {
@@ -26,6 +28,14 @@ public class SettingsCryptosoftWindowViewModel : INotifyPropertyChanged
         ResetCommand = new RelayCommand(ResetSettings);
         CloseCommand = new RelayCommand(CloseWindow);
     }
+
+    public string WindowTitle => _languageManager.Translate("CryptoSoft.SettingsWindowTitle");
+    public string SaveButtonText => _languageManager.Translate("CryptoSoft.SettingsSaveButtonText");
+    public string ResetButtonText => _languageManager.Translate("CryptoSoft.SettingsResetButtonText");
+    public string ExtensionsLabel => _languageManager.Translate("CryptoSoft.ExtensionsLabel");
+    public string PublicKeyLabel => _languageManager.Translate("CryptoSoft.PublicKeyLabel");
+    public string PrivateKeyLabel => _languageManager.Translate("CryptoSoft.PrivateKeyLabel");
+
     private string _allowedExtensionsText;
     public string AllowedExtensions
     {

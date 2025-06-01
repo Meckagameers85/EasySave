@@ -80,7 +80,6 @@
   "Backup.FullBackupOption": "Complète",
   "Backup.DifferentialBackupOption": "Différentielle",
   "Backup.EncryptLabel": "Chiffrer la Sauvegarde",
-
   "Settings.SaveButtonText": "Enregistrer",
   "Settings.ResetButtonText": "Réinitialiser",
   "Settings.LanguageLabel": "Langue",
@@ -90,5 +89,24 @@
   "DeleteBackup": "Supprimer la sauvegarde",
   "DeleteSelectedBackupsConfirmation": "Êtes-vous sûr de vouloir supprimer les sauvegardes sélectionnées :",
   "Confirmation": "Confirmation",
-  "NoBackupsSelected": "Aucune sauvegarde sélectionnée"
+  "NoBackupsSelected": "Aucune sauvegarde sélectionnée",
+  "Settings.TestBusinessSoftwareButtonText": "Test",
+  "Settings.SaveSettingsButtonText": "Sauvegarder",
+  "Settings.ResetSettingsButtonText": "Réinitialiser",
+  "CryptoSoft.SettingsWindowTitle": "Paramètres de CryptoSoft",
+  "CryptoSoft.SettingsSaveButtonText" : "Enregistrer",
+  "CryptoSoft.SettingsResetButtonText" : "Réinitialiser",
+  "Settings.BandwidthThresholdLabel": "Seuil fichiers volumineux",
+  "CryptoSoft.ExtensionsLabel" : "Extensions",
+  "CryptoSoft.PublicKeyLabel" : "Chemin Clé publique",
+  "CryptoSoft.PrivateKeyLabel" : "Chemin Clé privée",
+  "Backup.SourceDirectoryLabel": "Source :",
+  "Backup.TargetDirectoryLabel": "Destination :",
+  "BackupItem.TypeLabel": "Type :",
+  "BackupItem.EncryptLabel" :"Chiffrage",
+  "Backup.SelectAllButtonText" : "Tout sélectionner",
+  "Backup.DeselectAllButtonText" : "Tout désélectionner",
+  "Backup.DeleteSelectedButtonText" : "Supprimer la sélection",
+  "Backup.ExecuteSelectedButtonText" : "Exécuter la sélection",
+  "Backup.NewBackupButtonText" : "Nouvelle sauvegarde"
 }

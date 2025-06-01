@@ -30,6 +30,7 @@ namespace EasySaveProject
         }
         public void Reload()
         {
+            viewModel.ReloadTexts();
             viewModel.ReloadBackups();
             viewModel.ReloadSeletcedBackups();
             // viewModel.ReloadSettings();

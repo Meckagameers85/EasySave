@@ -150,6 +150,10 @@ public class BackupItemViewModel : INotifyPropertyChanged, IDisposable
         _completionResetTimer.Tick += ResetAfterCompletion;
     }
 
+    public string sourceDirectoryLabel => _languageManager.Translate("Backup.SourceDirectoryLabel");
+    public string targetDirectoryLabel => _languageManager.Translate("Backup.TargetDirectoryLabel");
+    public string TypeLabel => _languageManager.Translate("BackupItem.TypeLabel");
+    public string EncryptLabel => _languageManager.Translate("BackupItem.EncryptLabel");
     // Conditions d'activation des commandes
     private bool CanEdit() => !IsRunning && !_disposed;
     private bool CanDelete() => !IsRunning && !_disposed;

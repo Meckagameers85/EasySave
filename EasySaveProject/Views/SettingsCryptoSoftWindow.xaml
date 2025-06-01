@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Settings"
-        Height="200"
+        Height="250"
         Width="400"
         Background="Gray"
         ResizeMode="NoResize"
@@ -38,7 +38,7 @@
 
         <!-- Barre supérieure (drag + fermeture) -->
         <Grid Height="40" VerticalAlignment="Top" MouseDown="Window_MouseDown">
-            <TextBlock Text="CryptoSoft Settings"
+            <TextBlock Text="{Binding WindowTitle, UpdateSourceTrigger=PropertyChanged}"
                        FontSize="20"
                        FontWeight="Bold"
                        HorizontalAlignment="Center"
@@ -67,7 +67,7 @@
                         <ColumnDefinition Width="100" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Extensions :" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBlock Text="{Binding ExtensionsLabel, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Foreground="White"/>
                     <TextBox Grid.Column="1" Height="25" Width="160" Margin="0" Text="{Binding AllowedExtensions, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock Grid.Column="2" Text="Ex: .pdf, .docx, .txt" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
@@ -79,7 +79,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Public Key PATH" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBlock Text="{Binding PublicKeyLabel, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Foreground="White"/>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBox x:Name="PublicKeyPathBox" Width="220" Height="25" Margin="0" VerticalContentAlignment="Center" Text="{Binding PublicKeyPath, UpdateSourceTrigger=PropertyChanged}" />
@@ -94,7 +94,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Private Key PATH" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBlock Text="{Binding PrivateKeyLabel, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Foreground="White"/>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBox x:Name="PrivateKeyPathBox" Width="220" Height="25" Margin="0" VerticalContentAlignment="Center" Text="{Binding PrivateKeyPath, UpdateSourceTrigger=PropertyChanged}" />
@@ -109,8 +109,8 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Bottom"
                     Margin="0,0,0,10">
-            <Button Content="Save" Width="60" Margin="5" Style="{StaticResource RoundedButtonStyle}" Command="{Binding SaveCommand}"/>
-            <Button Content="Reset All" Width="80" Margin="5" Style="{StaticResource RoundedButtonStyle}" Command="{Binding ResetCommand}"/>
+            <Button Content="{Binding SaveButtonText, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="5" Style="{StaticResource RoundedButtonStyle}" Command="{Binding SaveCommand}"/>
+            <Button Content="{Binding ResetButtonText, UpdateSourceTrigger=PropertyChanged}" Width="80" Margin="5" Style="{StaticResource RoundedButtonStyle}" Command="{Binding ResetCommand}"/>
         </StackPanel>
     </Grid>
 </Window>

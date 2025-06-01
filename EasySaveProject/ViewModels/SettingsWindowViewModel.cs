@@ -40,7 +40,7 @@ public class SettingsWindowViewModel : INotifyPropertyChanged
     public string LanguageLabel => _languageManager.Translate("Settings.LanguageLabel");
     public string FormatLabel => _languageManager.Translate("Settings.FormatLabel");
     public string BusinessSoftwareNameLabel => _languageManager.Translate("Settings.businessSoftwareNameLabel");
-    public string BandwidthThresholdLabel => "Seuil fichiers volumineux (MB):"; // NOUVEAU
+    public string BandwidthThresholdLabel => _languageManager.Translate("Settings.BandwidthThresholdLabel");
     public string EnglishOption => _languageManager.Translate("lang.en");
     public string FrenchOption => _languageManager.Translate("lang.fr");
     public string SpanishOption => _languageManager.Translate("lang.es");
@@ -48,6 +48,11 @@ public class SettingsWindowViewModel : INotifyPropertyChanged
     public string RussianOption => _languageManager.Translate("lang.ru");
     public string ItalianOption => _languageManager.Translate("lang.it");
     public string PortugueseOption => _languageManager.Translate("lang.pt");
+
+    public string TestBusinessSoftwareButtonText => _languageManager.Translate("Settings.TestBusinessSoftwareButtonText");
+    public string SaveSettingsButtonText => _languageManager.Translate("Settings.SaveSettingsButtonText");
+    public string ResetSettingsButtonText => _languageManager.Translate("Settings.ResetSettingsButtonText");
+
     #endregion
 
     private string _languageCode = "en";
@@ -164,6 +169,9 @@ public class SettingsWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(RussianOption));
         OnPropertyChanged(nameof(ItalianOption));
         OnPropertyChanged(nameof(PortugueseOption));
+        OnPropertyChanged(nameof(TestBusinessSoftwareButtonText));
+        OnPropertyChanged(nameof(SaveSettingsButtonText));
+        OnPropertyChanged(nameof(ResetSettingsButtonText));
     }
 
     private void CloseWindow() => RequestClose?.Invoke();
