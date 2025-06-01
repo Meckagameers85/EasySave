@@ -287,9 +287,17 @@ public class SaveTask
         foreach (var file in files)
         {
             _pauseEvent.WaitOne(); // Attend si en pause
+
             if (_cts.Token.IsCancellationRequested)
             {
                 Console.WriteLine("⛔ Sauvegarde arrêtée par l'utilisateur.");
+                return;
+            }
+
+            // Vérification supplémentaire juste avant la copie
+            if (_cts.Token.IsCancellationRequested)
+            {
+                Console.WriteLine("⛔ Sauvegarde arrêtée juste avant la copie.");
                 return;
             }
 
@@ -355,6 +363,14 @@ public class SaveTask
             if (shouldCopy)
             {
                 var startTime = DateTime.UtcNow;
+
+                // Nouvelle vérification annulation juste avant la copie effective
+                if (_cts.Token.IsCancellationRequested)
+                {
+                    Console.WriteLine("⛔ Sauvegarde arrêtée avant la copie du fichier.");
+                    return;
+                }
+
                 try
                 {
                     File.Copy(file, destinationPath, true);
@@ -405,6 +421,7 @@ public class SaveTask
         UpdateRealtimeState(finalState);
         Console.WriteLine("✅ Sauvegarde terminée");
     }
+
 
 
     private void UpdateRealtimeState(SaveState currentState)

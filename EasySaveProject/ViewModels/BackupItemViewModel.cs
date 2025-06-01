@@ -39,6 +39,7 @@ public class BackupItemViewModel : INotifyPropertyChanged
         }
     }
 
+
     public BackupItemViewModel(SaveTask save)
     {
         _backupManager = BackupManager.instance;
@@ -73,6 +74,23 @@ public class BackupItemViewModel : INotifyPropertyChanged
     }
 
     // 🆕 Méthode pour lire périodiquement le state.json
+    private bool _isPaused;
+    public bool IsPaused
+    {
+        get => _isPaused;
+        set
+        {
+            if (_isPaused != value)
+            {
+                _isPaused = value;
+                OnPropertyChanged(nameof(IsPaused));
+                OnPropertyChanged(nameof(CanEditOrDelete));
+            }
+        }
+    }
+
+    public bool CanEditOrDelete => !IsPaused;
+
     private void UpdateStateFromFile(object? state)
     {
         try
@@ -84,6 +102,9 @@ public class BackupItemViewModel : INotifyPropertyChanged
                 System.Windows.Application.Current?.Dispatcher.BeginInvoke(() =>
                 {
                     UpdateProgressFromSaveState(currentState);
+
+                    // Ici on met à jour IsPaused selon l'état dans state.json
+                    IsPaused = currentState.state == "PAUSED";
                 });
             }
         }
@@ -92,6 +113,7 @@ public class BackupItemViewModel : INotifyPropertyChanged
             // Ignorer les erreurs de lecture
         }
     }
+
 
     // 🆕 Méthode pour lire le state.json
     private SaveState? ReadCurrentStateFromFile()

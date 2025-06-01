@@ -66,7 +66,8 @@
                             Height="30"
                             Margin="3"
                             ToolTip="Edit"
-                            Command="{Binding EditBackupCommand}">
+                            Command="{Binding EditBackupCommand}"
+                            IsEnabled="{Binding CanEditOrDelete}">
                         <Path Data="M3,17 L3,14 L14,3 L17,6 L6,17 Z M2,20 L20,20 L20,22 L2,22 Z"
                               Fill="White"/>
                     </Button>
@@ -76,7 +77,8 @@
                             Height="30"
                             Margin="3"
                             ToolTip="Delete"
-                            Command="{Binding DeleteBackupCommand}">🗑</Button>
+                            Command="{Binding DeleteBackupCommand}"
+                            IsEnabled="{Binding CanEditOrDelete}">🗑</Button>
                 </StackPanel>
             </DockPanel>
 
