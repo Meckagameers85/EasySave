@@ -18,8 +18,8 @@ public class SaveTask
     public static CryptoSoftManager? s_cryptoSoftManager { get; set; }
     private ProcessMonitor? _processMonitor;
 
-    // NOUVEAUX : Mécanismes de contrôle play ans pause
-    private ManualResetEvent _pauseEvent = new(true); // true = non bloquant au début
+    // Mécanismes de contrôle play/pause
+    private ManualResetEvent _pauseEvent = new(true);
     private CancellationTokenSource _cts = new();
 
     public SaveType? type { get; set; }
@@ -41,96 +41,51 @@ public class SaveTask
 
     public void SetSaveType(string setTypeVar)
     {
-        /*
-            Visibility : public
-            Input : string setTypeVar
-            Output : None
-            Description : Set the type of save based on the provided string.
-        */
         if (_stringToSaveType.TryGetValue(setTypeVar, out var saveType)) { type = saveType; }
         else { type = SaveType.Full; }
     }
 
     public string GetSaveType()
     {
-        /*
-            Visibility : public
-            Input : None
-            Output : string
-            Description : Get the type of save as a string.
-        */
         if (_saveTypeToString.TryGetValue(type ?? SaveType.Full, out var typeString)) { return typeString; }
         else { return "Full"; }
     }
 
     public SaveTask(string? sourceDirectory = null, string? targetDirectory = null, string? name = null, SaveType? type = SaveType.Full, bool IsEncrypted = false)
     {
-        /*
-            Visibility : public
-            Input : string sourceDirectory, string targetDirectory, string name, SaveType type
-            Output : None
-            Description : Constructor of the SaveTask class. It initializes the source and target directories, name, and type of save.
-        */
         this.sourceDirectory = sourceDirectory;
         this.targetDirectory = targetDirectory;
         this.name = name;
         this.type = type;
         this.IsEncrypted = IsEncrypted;
-
-        // 🔄 CORRECTION : Initialisation plus robuste du ProcessMonitor
         InitializeProcessMonitor();
     }
 
-    //  NOUVELLE méthode pour initialiser le ProcessMonitor
     private void InitializeProcessMonitor()
     {
         if (s_settingsManager != null)
         {
             _processMonitor = new ProcessMonitor(s_settingsManager.businessSoftwareName);
-            Console.WriteLine($"[DEBUG] ProcessMonitor initialisé avec: '{s_settingsManager.businessSoftwareName}'");
-        }
-        else
-        {
-            Console.WriteLine("[DEBUG] s_settingsManager est null - ProcessMonitor non initialisé");
         }
     }
 
     public override string ToString()
     {
-        /*
-            Visibility : public
-            Input : None
-            Output : string
-            Description : Get a string representation of the SaveTask object.
-        */
         return $"[bold]{name}[/] ({GetSaveType()}): \"{sourceDirectory}\" ==> \"{targetDirectory}\"";
     }
 
     public string WayToString()
     {
-        /*
-            Visibility : public
-            Input : None
-            Output : string
-            Description : Get a string representing the transfer direction of the SaveTask object.
-        */
         return $"[bold]\"{sourceDirectory}\"[/] ========> [bold]\"{targetDirectory}\"[/]";
     }
 
     public void Run()
     {
-        /*
-            Visibility : public
-            Input : None
-            Output : None
-            Description : Run the backup process for the current SaveTask object.
-        */
         _cts = new CancellationTokenSource();
-        _pauseEvent.Set(); // S'assurer qu'on n'est pas en pause au début
-        // Réinitialiser le ProcessMonitor au cas où les paramètres auraient changé
+        _pauseEvent.Set();
         InitializeProcessMonitor();
 
-        // VÉRIFICATION AVANT DE COMMENCER (Scénario B)
+        // Vérification avant de commencer
         if (_processMonitor?.IsBusinessSoftwareRunning() == true)
         {
             var blockEntry = new LoggerLib.LogEntry
@@ -145,44 +100,33 @@ public class SaveTask
             };
             s_logger?.Log(blockEntry);
             UpdateStateInFile("BLOCKED");
-            // 🚫 REFUSE DE DÉMARRER - sortie immédiate
             return;
         }
 
-        if (!Directory.Exists(sourceDirectory))
-            return;
-
-        if (!Directory.Exists(targetDirectory))
-            Directory.CreateDirectory(targetDirectory!);
+        if (!Directory.Exists(sourceDirectory)) return;
+        if (!Directory.Exists(targetDirectory)) Directory.CreateDirectory(targetDirectory!);
 
         var files = Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories);
         int totalFiles = files.Length;
         long totalSize = files.Sum(f => new FileInfo(f).Length);
         int filesRemaining = totalFiles;
 
+        // Liste des gros fichiers reportés
+        var deferredLargeFiles = new List<string>();
+
+        // Première passe : traiter tous les fichiers
+
         foreach (var file in files)
         {
-            // NOUVEAU : Vérifier l'annulation avant chaque fichier
-            if (_cts.Token.IsCancellationRequested)
-            {
-                // Arrêt demandé - sortir immédiatement
-                return;
-            }
-
-            // NOUVEAU : Attendre si en pause (bloque ici jusqu'à reprise)
+            // Vérifications d'annulation et pause
+            if (_cts.Token.IsCancellationRequested) return;
             _pauseEvent.WaitOne();
+            if (_cts.Token.IsCancellationRequested) return;
 
-            // NOUVEAU : Re-vérifier l'annulation après la pause
-            if (_cts.Token.IsCancellationRequested)
-            {
-                return;
-            }
-
-            //  VÉRIFICATION PENDANT LA SAUVEGARDE (Scénario C)
+            // Vérification logiciel métier
             InitializeProcessMonitor();
             if (_processMonitor?.IsBusinessSoftwareRunning() == true)
             {
-                // Log de l'arrêt dans le fichier de log
                 var stopEntry = new LoggerLib.LogEntry
                 {
                     timestamp = DateTime.UtcNow,
@@ -192,13 +136,10 @@ public class SaveTask
                     sizeBytes = 0,
                     transferTimeMs = -1, // Code d'arrêt
                     encryptTimeMs = -1
+
                 };
                 s_logger?.Log(stopEntry);
-                // Mettre le state.json en "BLOCKED"
                 UpdateStateInFile("BLOCKED");
-                // je veux faire un sleep de 4s
-                System.Threading.Thread.Sleep(10000);
-                // Arrêt immédiat de la sauvegarde
                 return;
             }
 
@@ -211,6 +152,7 @@ public class SaveTask
                 timestamp = DateTime.UtcNow
             };
 
+            // Création des répertoires
             if (!Directory.Exists(destinationDir))
             {
                 var startTime = DateTime.UtcNow;
@@ -246,13 +188,34 @@ public class SaveTask
 
             if (shouldCopy)
             {
-                var startTime = DateTime.UtcNow;
-                try
+                var fileInfo = new FileInfo(file);
+                var fileSizeBytes = fileInfo.Length;
+                bool isLargeFile = BandwidthManager.Instance.IsLargeFile(fileSizeBytes);
+
+                if (isLargeFile)
                 {
-                    File.Copy(file, destinationPath, true);
-                    var endTime = DateTime.UtcNow;
-                    logEntry.transferTimeMs = (endTime - startTime).TotalMilliseconds;
-                    if (IsEncrypted)
+                    // Gros fichier - essayer d'acquérir le verrou sans attente
+                    bool acquired = BandwidthManager.Instance.TryAcquireLargeFileTransfer(
+                        file, fileSizeBytes, name ?? "Unnamed", timeout: 0);
+
+                    if (!acquired)
+                    {
+                        // Reporter ce gros fichier pour plus tard
+                        deferredLargeFiles.Add(file);
+                        continue;
+                }
+
+                // Copier le fichier
+                bool copySuccess = ProcessFileTransfer(file, destinationPath, logEntry, isLargeFile);
+
+                if (!copySuccess && isLargeFile)
+                {
+                    // Échec - remettre dans la liste des reportés
+                    deferredLargeFiles.Add(file);
+                }
+                if (copySuccess)
+                {
+                 if (IsEncrypted)
                     {
                         var startEncTime = DateTime.UtcNow;
                         s_cryptoSoftManager?.UseCryptoSoftWithFile(destinationPath, "encode");
@@ -264,17 +227,115 @@ public class SaveTask
                         logEntry.encryptTimeMs = 0;
                     }
                 }
-                catch
-                {
-                    logEntry.transferTimeMs = -1;
-                }
             }
-            s_logger?.Log(logEntry);
 
+            s_logger?.Log(logEntry);
             filesRemaining--;
             int progression = (int)(((double)(totalFiles - filesRemaining) / totalFiles) * 100);
 
-            if (_pauseEvent.WaitOne(0) && !_cts.Token.IsCancellationRequested) // Test non-bloquant
+            // Mise à jour progression
+            if (_pauseEvent.WaitOne(0) && !_cts.Token.IsCancellationRequested)
+            {
+                var state = new SaveState
+                {
+                    name = name ?? "Unnamed",
+                    sourceFilePath = file,
+                    targetFilePath = destinationPath,
+                    state = "ACTIVE",
+                    totalFilesToCopy = totalFiles,
+                    totalFilesSize = totalSize,
+                    nbFilesLeftToDo = filesRemaining + deferredLargeFiles.Count,
+                    progression = Math.Max(0, (int)(((double)(totalFiles - filesRemaining - deferredLargeFiles.Count) / totalFiles) * 100))
+                };
+                UpdateRealtimeState(state);
+            }
+        }
+
+        // Deuxième passe : traiter les gros fichiers reportés
+        ProcessDeferredLargeFiles(deferredLargeFiles, totalFiles, totalSize).Wait();
+
+        // Finalisation
+        if (!_cts.Token.IsCancellationRequested)
+        {
+            var finalState = new SaveState
+            {
+                name = name ?? "Unnamed",
+                sourceFilePath = "",
+                targetFilePath = "",
+                state = "END",
+                totalFilesToCopy = totalFiles,
+                totalFilesSize = totalSize,
+                nbFilesLeftToDo = 0,
+                progression = 100
+            };
+            UpdateRealtimeState(finalState);
+        }
+    }
+
+    private bool ProcessFileTransfer(string file, string destinationPath, LoggerLib.LogEntry logEntry, bool isLargeFile)
+    {
+        var startTime = DateTime.UtcNow;
+        try
+        {
+            File.Copy(file, destinationPath, true);
+            var endTime = DateTime.UtcNow;
+            logEntry.transferTimeMs = (endTime - startTime).TotalMilliseconds;
+            return true;
+        }
+        catch
+        {
+            logEntry.transferTimeMs = -1;
+            return false;
+        }
+        finally
+        {
+            if (isLargeFile)
+            {
+                BandwidthManager.Instance.ReleaseLargeFileTransfer(file);
+            }
+        }
+    }
+
+    private async Task ProcessDeferredLargeFiles(List<string> deferredFiles, int totalFiles, long totalSize)
+    {
+        if (deferredFiles.Count == 0) return;
+
+        foreach (var file in deferredFiles.ToList())
+        {
+            if (_cts.Token.IsCancellationRequested) return;
+            _pauseEvent.WaitOne();
+            if (_cts.Token.IsCancellationRequested) return;
+
+            var fileInfo = new FileInfo(file);
+            var fileSizeBytes = fileInfo.Length;
+            var relativePath = Path.GetRelativePath(sourceDirectory!, file);
+            var destinationPath = Path.Combine(targetDirectory!, relativePath);
+
+            // Acquérir le verrou avec timeout long
+            bool acquired = await BandwidthManager.Instance.TryAcquireLargeFileTransferAsync(
+                file, fileSizeBytes, name ?? "Unnamed", timeout: 60000);
+
+            if (acquired)
+            {
+                var logEntry = new LoggerLib.LogEntry()
+                {
+                    saveName = name ?? "Unnamed",
+                    timestamp = DateTime.UtcNow,
+                    source = file,
+                    destination = destinationPath,
+                    sizeBytes = fileSizeBytes
+                };
+
+                ProcessFileTransfer(file, destinationPath, logEntry, isLargeFile: true);
+                s_logger?.Log(logEntry);
+                deferredFiles.Remove(file);
+            }
+
+            // Mise à jour progression
+            int filesRemaining = deferredFiles.Count;
+            int progression = Math.Max(0, (int)(((double)(totalFiles - filesRemaining) / totalFiles) * 100));
+
+            if (_pauseEvent.WaitOne(0) && !_cts.Token.IsCancellationRequested)
             {
                 var state = new SaveState
                 {
@@ -287,40 +348,13 @@ public class SaveTask
                     nbFilesLeftToDo = filesRemaining,
                     progression = progression
                 };
-
                 UpdateRealtimeState(state);
             }
-            // Si en pause, ne pas écrire d'état (Pause() l'aura déjà fait)
-        }
-
-        // NOUVEAU : Vérifier si on est arrivé au bout ou si on a été interrompu
-        if (!_cts.Token.IsCancellationRequested)
-        {
-            // Terminé normalement
-            var finalState = new SaveState
-            {
-                name = name ?? "Unnamed",
-                sourceFilePath = "",
-                targetFilePath = "",
-                state = "END",
-                totalFilesToCopy = totalFiles,
-                totalFilesSize = totalSize,
-                nbFilesLeftToDo = 0,
-                progression = 100
-            };
-
-            UpdateRealtimeState(finalState);
         }
     }
 
     private void UpdateRealtimeState(SaveState currentState)
     {
-        /*
-            Visibility : private
-            Input : SaveState currentState
-            Output : None
-            Description : Update the real-time state of the backup process by saving it into a JSON file.
-        */
         List<SaveState> states = new();
 
         SaveState._mutex.WaitOne();
@@ -355,14 +389,12 @@ public class SaveTask
         SaveState._mutex.ReleaseMutex();
     }
 
-    // NOUVELLES MÉTHODES de contrôle
+    // Méthodes de contrôle
     public void Pause()
     {
         try
         {
-            _pauseEvent.Reset(); // Met en pause le thread
-            
-            // Mettre à jour le state.json pour indiquer "PAUSED"
+            _pauseEvent.Reset();
             UpdateStateInFile("PAUSED");
         }
         catch (Exception ex)
@@ -375,9 +407,7 @@ public class SaveTask
     {
         try
         {
-            _pauseEvent.Set(); // Reprend le thread
-            
-            // Mettre à jour le state.json pour indiquer "ACTIVE"
+            _pauseEvent.Set();
             UpdateStateInFile("ACTIVE");
         }
         catch (Exception ex)
@@ -390,10 +420,8 @@ public class SaveTask
     {
         try
         {
-            _cts.Cancel(); // Annule la tâche
-            _pauseEvent.Set(); // S'assurer que le thread n'est pas bloqué
-
-            // Mettre à jour le state.json pour indiquer "STOPPED"
+            _cts.Cancel();
+            _pauseEvent.Set();
             UpdateStateInFile("STOPPED");
         }
         catch (Exception ex)
@@ -402,13 +430,12 @@ public class SaveTask
         }
     }
 
-    // MÉTHODE HELPER pour mettre à jour juste l'état
     private void UpdateStateInFile(string newState)
     {
         try
         {
             List<SaveState> states = new();
-            
+
             SaveState._mutex.WaitOne();
             if (File.Exists(s_stateFilePath))
             {
@@ -430,7 +457,6 @@ public class SaveTask
             }
             else
             {
-                // Créer un nouvel état minimal
                 states.Add(new SaveState
                 {
                     name = this.name ?? "Unnamed",
