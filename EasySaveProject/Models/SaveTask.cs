@@ -177,6 +177,7 @@ public class SaveTask
 
             //  VÉRIFICATION PENDANT LA SAUVEGARDE (Scénario C)
             InitializeProcessMonitor();
+
             if (_processMonitor?.IsBusinessSoftwareRunning() == true)
             {
                 // Log de l'arrêt dans le fichier de log
