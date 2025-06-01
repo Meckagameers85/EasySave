@@ -13,13 +13,15 @@ public class SaveTask
     public string? name { get; set; }
     public string? sourceDirectory { get; set; }
     public string? targetDirectory { get; set; }
-
+    public bool IsEncrypted { get; set; }
     public static SettingsManager? s_settingsManager { get; set; }
+    public static CryptoSoftManager? s_cryptoSoftManager { get; set; }
     private ProcessMonitor? _processMonitor;
 
     // Mécanismes de contrôle play/pause
     private ManualResetEvent _pauseEvent = new(true);
     private CancellationTokenSource _cts = new();
+
     public SaveType? type { get; set; }
 
     public static LoggerLib.Logger? s_logger { get; set; }
@@ -49,12 +51,13 @@ public class SaveTask
         else { return "Full"; }
     }
 
-    public SaveTask(string? sourceDirectory = null, string? targetDirectory = null, string? name = null, SaveType? type = SaveType.Full)
+    public SaveTask(string? sourceDirectory = null, string? targetDirectory = null, string? name = null, SaveType? type = SaveType.Full, bool IsEncrypted = false)
     {
         this.sourceDirectory = sourceDirectory;
         this.targetDirectory = targetDirectory;
         this.name = name;
         this.type = type;
+        this.IsEncrypted = IsEncrypted;
         InitializeProcessMonitor();
     }
 
@@ -92,7 +95,8 @@ public class SaveTask
                 source = "BACKUP_BLOCKED",
                 destination = $"Backup refused - Business software running: {s_settingsManager?.businessSoftwareName}",
                 sizeBytes = 0,
-                transferTimeMs = -1
+                transferTimeMs = -1,
+                encryptTimeMs = -1
             };
             s_logger?.Log(blockEntry);
             UpdateStateInFile("BLOCKED");
@@ -130,7 +134,9 @@ public class SaveTask
                     source = file,
                     destination = $"STOPPED - Business software detected: {s_settingsManager?.businessSoftwareName}",
                     sizeBytes = 0,
-                    transferTimeMs = -1
+                    transferTimeMs = -1, // Code d'arrêt
+                    encryptTimeMs = -1
+
                 };
                 s_logger?.Log(stopEntry);
                 UpdateStateInFile("BLOCKED");
@@ -197,7 +203,6 @@ public class SaveTask
                         // Reporter ce gros fichier pour plus tard
                         deferredLargeFiles.Add(file);
                         continue;
-                    }
                 }
 
                 // Copier le fichier
@@ -207,6 +212,20 @@ public class SaveTask
                 {
                     // Échec - remettre dans la liste des reportés
                     deferredLargeFiles.Add(file);
+                }
+                if (copySuccess)
+                {
+                 if (IsEncrypted)
+                    {
+                        var startEncTime = DateTime.UtcNow;
+                        s_cryptoSoftManager?.UseCryptoSoftWithFile(destinationPath, "encode");
+                        var endEncTime = DateTime.UtcNow;
+                        logEntry.encryptTimeMs = (endEncTime - startEncTime).TotalMilliseconds;
+                    }
+                    else
+                    {
+                        logEntry.encryptTimeMs = 0;
+                    }
                 }
             }
 

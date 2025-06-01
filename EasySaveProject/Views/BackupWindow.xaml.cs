@@ -19,10 +19,9 @@ namespace EasySaveProject
             DataContext = _dataContext;
         }
 
-        public BackupWindow(string backupName, string backupSourcePath, string backupTargetPath, string backupType, string backupEncryptType)
+        public BackupWindow(string backupName, string backupSourcePath, string backupTargetPath, string backupType, bool isEncrypted)
         {
             InitializeComponent();
-            bool isEncrypted = backupEncryptType.Equals("true", StringComparison.OrdinalIgnoreCase);
 
             var _dataContext = new BackupWindowViewModel(backupName, backupSourcePath, backupTargetPath, backupType, isEncrypted);
             _dataContext.RequestClose += () => this.Close();

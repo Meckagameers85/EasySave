@@ -3,6 +3,7 @@ using System.Windows.Input;
 using System.Windows.Controls;
 using Microsoft.WindowsAPICodePack.Dialogs;
 
+using EasySaveProject.ViewModels;
 namespace EasySaveProject
 {
     public partial class SettingsCryptoSoftWindow : Window
@@ -10,6 +11,9 @@ namespace EasySaveProject
         public SettingsCryptoSoftWindow()
         {
             InitializeComponent();
+            var _dataContext = new SettingsCryptosoftWindowViewModel();
+            _dataContext.RequestClose += () => this.Close();
+            DataContext = _dataContext;
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -17,25 +21,12 @@ namespace EasySaveProject
             if (e.ChangedButton == MouseButton.Left)
                 this.DragMove();
         }
-        private void Close_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
         private void Window_Closed(object sender, EventArgs e)
         {
             if (Owner is MainWindow mainWindow)
             {
                 mainWindow.Reload();
             }
-        }
-        private void Save_Click(object sender, RoutedEventArgs e)
-        {
-            // Logique de sauvegarde ici
-        }
-
-        private void Reset_Click(object sender, RoutedEventArgs e)
-        {
-            // Logique de réinitialisation ici
         }
         private void BrowseFolderButton_Click(object sender, RoutedEventArgs e)
         {

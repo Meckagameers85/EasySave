@@ -235,18 +235,14 @@ public class BackupItemViewModel : INotifyPropertyChanged, IDisposable
             OnPropertyChanged();
         }
     }
-
-    private string _backupEncryptType = "None";
-    public string BackupEncryptType
+    public string IsBackupEncrypted => BackupEncrypt ? _languageManager.Translate("delete.yes") : _languageManager.Translate("delete.no");
+    public bool BackupEncrypt
     {
-        get => _backupEncryptType;
+        get => _saveTask.IsEncrypted;
         set
         {
-            if (_backupEncryptType != value)
-            {
-                _backupEncryptType = value;
-                OnPropertyChanged();
-            }
+            _saveTask.IsEncrypted = value;
+            OnPropertyChanged();
         }
     }
 
@@ -262,7 +258,7 @@ public class BackupItemViewModel : INotifyPropertyChanged, IDisposable
                 BackupSource,
                 BackupTarget,
                 BackupType,
-                BackupEncryptType
+                BackupEncrypt
             );
 
             backupWindow.Owner = System.Windows.Application.Current.MainWindow;

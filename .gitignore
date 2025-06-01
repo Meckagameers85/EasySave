@@ -13,3 +13,10 @@ Loggerlib/obj
 Loggerlib/obj/*
 Loggerlib/bin
 Loggerlib/bin/*
+
+CryptoSoft/obj
+CryptoSoft/obj/*
+CryptoSoft/bin
+CryptoSoft/bin/*
+CryptoSoft/settings.json
+CryptoSoft/*.pem
