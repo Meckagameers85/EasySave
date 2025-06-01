@@ -1,0 +1,2 @@
+D:\A3 2024-2025\6-Génie logiciel (28_04_2025-30_04_2025 & 09_05_2025-02_06_2025)\Meckagameers85\Test\CryptoSoft\bin\Release\net9.0\win-x64\publish\CryptoSoft.pdb
+D:\A3 2024-2025\6-Génie logiciel (28_04_2025-30_04_2025 & 09_05_2025-02_06_2025)\Meckagameers85\Test\CryptoSoft\bin\Release\net9.0\win-x64\publish\CryptoSoft.exe

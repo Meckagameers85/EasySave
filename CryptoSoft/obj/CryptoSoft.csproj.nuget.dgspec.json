@@ -1,0 +1,101 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\A3 2024-2025\\6-Génie logiciel (28_04_2025-30_04_2025 & 09_05_2025-02_06_2025)\\Meckagameers85\\Test\\CryptoSoft\\CryptoSoft.csproj": {}
+  },
+  "projects": {
+    "D:\\A3 2024-2025\\6-Génie logiciel (28_04_2025-30_04_2025 & 09_05_2025-02_06_2025)\\Meckagameers85\\Test\\CryptoSoft\\CryptoSoft.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\A3 2024-2025\\6-Génie logiciel (28_04_2025-30_04_2025 & 09_05_2025-02_06_2025)\\Meckagameers85\\Test\\CryptoSoft\\CryptoSoft.csproj",
+        "projectName": "CryptoSoft",
+        "projectPath": "D:\\A3 2024-2025\\6-Génie logiciel (28_04_2025-30_04_2025 & 09_05_2025-02_06_2025)\\Meckagameers85\\Test\\CryptoSoft\\CryptoSoft.csproj",
+        "packagesPath": "C:\\Users\\Thomas\\.nuget\\packages\\",
+        "outputPath": "D:\\A3 2024-2025\\6-Génie logiciel (28_04_2025-30_04_2025 & 09_05_2025-02_06_2025)\\Meckagameers85\\Test\\CryptoSoft\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Thomas\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.NET.ILLink.Tasks": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.5, )",
+              "autoReferenced": true
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
+              "version": "[9.0.5, 9.0.5]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Runtime.win-x64",
+              "version": "[9.0.5, 9.0.5]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
+              "version": "[9.0.5, 9.0.5]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "win-x64": {
+          "#import": []
+        }
+      }
+    }
+  }
+}
