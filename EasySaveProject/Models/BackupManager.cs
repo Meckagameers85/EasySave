@@ -26,7 +26,7 @@ public class BackupManager
 
     public bool BackupExists(string name)
     {
-        return saveTasks?.Any(b => b.name.Equals(name, StringComparison.OrdinalIgnoreCase)) == true;
+        return saveTasks?.Any(b => b.name?.Equals(name, StringComparison.OrdinalIgnoreCase)== true) == true;
     }
 
     public void SaveBackup()

@@ -17,6 +17,9 @@ public class SaveTask
     public static SettingsManager? s_settingsManager { get; set; }
     private ProcessMonitor? _processMonitor;
 
+    // NOUVEAUX : Mécanismes de contrôle play ans pause
+    private ManualResetEvent _pauseEvent = new(true); // true = non bloquant au début
+    private CancellationTokenSource _cts = new();
     public SaveType? type { get; set; }
 
     public static LoggerLib.Logger? s_logger { get; set; }
@@ -76,7 +79,7 @@ public class SaveTask
         InitializeProcessMonitor();
     }
 
-    // 🆕 NOUVELLE méthode pour initialiser le ProcessMonitor
+    //  NOUVELLE méthode pour initialiser le ProcessMonitor
     private void InitializeProcessMonitor()
     {
         if (s_settingsManager != null)
@@ -120,11 +123,12 @@ public class SaveTask
             Output : None
             Description : Run the backup process for the current SaveTask object.
         */
-
-        // 🆕 AJOUT : Réinitialiser le ProcessMonitor au cas où les paramètres auraient changé
+        _cts = new CancellationTokenSource();
+        _pauseEvent.Set(); // S'assurer qu'on n'est pas en pause au début
+        // Réinitialiser le ProcessMonitor au cas où les paramètres auraient changé
         InitializeProcessMonitor();
 
-        // 🆕 AJOUT : VÉRIFICATION AVANT DE COMMENCER (Scénario B)
+        // VÉRIFICATION AVANT DE COMMENCER (Scénario B)
         if (_processMonitor?.IsBusinessSoftwareRunning() == true)
         {
             var blockEntry = new LoggerLib.LogEntry
@@ -137,8 +141,7 @@ public class SaveTask
                 transferTimeMs = -1
             };
             s_logger?.Log(blockEntry);
-
-            Console.WriteLine($"🚫 SAUVEGARDE BLOQUÉE - Logiciel métier '{s_settingsManager?.businessSoftwareName}' détecté");
+            UpdateStateInFile("BLOCKED");
             // 🚫 REFUSE DE DÉMARRER - sortie immédiate
             return;
         }
@@ -154,14 +157,27 @@ public class SaveTask
         long totalSize = files.Sum(f => new FileInfo(f).Length);
         int filesRemaining = totalFiles;
 
-        Console.WriteLine($"✅ Démarrage sauvegarde - {totalFiles} fichiers à traiter");
-
         foreach (var file in files)
         {
+            // NOUVEAU : Vérifier l'annulation avant chaque fichier
+            if (_cts.Token.IsCancellationRequested)
+            {
+                // Arrêt demandé - sortir immédiatement
+                return;
+            }
 
-            // je veux faire un sleep de 4s
-            // System.Threading.Thread.Sleep(1000);
-            // 🆕 VÉRIFICATION PENDANT LA SAUVEGARDE (Scénario C)
+            // NOUVEAU : Attendre si en pause (bloque ici jusqu'à reprise)
+            _pauseEvent.WaitOne();
+
+            // NOUVEAU : Re-vérifier l'annulation après la pause
+            if (_cts.Token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            //  VÉRIFICATION PENDANT LA SAUVEGARDE (Scénario C)
+            InitializeProcessMonitor();
+
             if (_processMonitor?.IsBusinessSoftwareRunning() == true)
             {
                 // Log de l'arrêt dans le fichier de log
@@ -175,10 +191,12 @@ public class SaveTask
                     transferTimeMs = -1 // Code d'arrêt
                 };
                 s_logger?.Log(stopEntry);
-
-                Console.WriteLine($"⏹️ SAUVEGARDE INTERROMPUE - Logiciel métier '{s_settingsManager?.businessSoftwareName}' détecté");
+                // Mettre le state.json en "BLOCKED"
+                UpdateStateInFile("BLOCKED");
+                // je veux faire un sleep de 4s
+                System.Threading.Thread.Sleep(10000);
                 // Arrêt immédiat de la sauvegarde
-                break;
+                return;
             }
 
             var relativePath = Path.GetRelativePath(sourceDirectory!, file);
@@ -242,35 +260,44 @@ public class SaveTask
             filesRemaining--;
             int progression = (int)(((double)(totalFiles - filesRemaining) / totalFiles) * 100);
 
-            var state = new SaveState
+            if (_pauseEvent.WaitOne(0) && !_cts.Token.IsCancellationRequested) // Test non-bloquant
             {
-                name = name ?? "Unnamed",
-                sourceFilePath = file,
-                targetFilePath = destinationPath,
-                state = "ACTIVE",
-                totalFilesToCopy = totalFiles,
-                totalFilesSize = totalSize,
-                nbFilesLeftToDo = filesRemaining,
-                progression = progression
-            };
+                var state = new SaveState
+                {
+                    name = name ?? "Unnamed",
+                    sourceFilePath = file,
+                    targetFilePath = destinationPath,
+                    state = "ACTIVE",
+                    totalFilesToCopy = totalFiles,
+                    totalFilesSize = totalSize,
+                    nbFilesLeftToDo = filesRemaining,
+                    progression = progression
+                };
 
-            UpdateRealtimeState(state);
+                UpdateRealtimeState(state);
+            }
+            // Si en pause, ne pas écrire d'état (Pause() l'aura déjà fait)
         }
 
-        var finalState = new SaveState
+        // NOUVEAU : Vérifier si on est arrivé au bout ou si on a été interrompu
+        if (!_cts.Token.IsCancellationRequested)
         {
-            name = name ?? "Unnamed",
-            sourceFilePath = "",
-            targetFilePath = "",
-            state = "END",
-            totalFilesToCopy = totalFiles,
-            totalFilesSize = totalSize,
-            nbFilesLeftToDo = 0,
-            progression = 100
-        };
+            // Terminé normalement
+            var finalState = new SaveState
+            {
+                name = name ?? "Unnamed",
+                sourceFilePath = "",
+                targetFilePath = "",
+                state = "END",
+                totalFilesToCopy = totalFiles,
+                totalFilesSize = totalSize,
+                nbFilesLeftToDo = 0,
+                progression = 100
+            };
 
-        UpdateRealtimeState(finalState);
-        Console.WriteLine("✅ Sauvegarde terminée");
+            UpdateRealtimeState(finalState);
+        }
+        // Sinon, c'est que Stop() a été appelé - l'état "STOPPED" est déjà écrit
     }
 
     private void UpdateRealtimeState(SaveState currentState)
@@ -313,5 +340,102 @@ public class SaveTask
             // Erreur silencieuse pour ne pas interrompre la sauvegarde
         }
         SaveState._mutex.ReleaseMutex();
+    }
+
+    // NOUVELLES MÉTHODES de contrôle
+    public void Pause()
+    {
+        try
+        {
+            _pauseEvent.Reset(); // Met en pause le thread
+            
+            // Mettre à jour le state.json pour indiquer "PAUSED"
+            UpdateStateInFile("PAUSED");
+        }
+        catch (Exception ex)
+        {
+            // Log silencieux ou optionnel
+        }
+    }
+
+    public void Resume()
+    {
+        try
+        {
+            _pauseEvent.Set(); // Reprend le thread
+            
+            // Mettre à jour le state.json pour indiquer "ACTIVE"
+            UpdateStateInFile("ACTIVE");
+        }
+        catch (Exception ex)
+        {
+            // Log silencieux ou optionnel
+        }
+    }
+
+    public void Stop()
+    {
+        try
+        {
+            _cts.Cancel(); // Annule la tâche
+            _pauseEvent.Set(); // S'assurer que le thread n'est pas bloqué
+
+            // Mettre à jour le state.json pour indiquer "STOPPED"
+            UpdateStateInFile("STOPPED");
+        }
+        catch (Exception ex)
+        {
+            // Log silencieux ou optionnel
+        }
+    }
+
+    // MÉTHODE HELPER pour mettre à jour juste l'état
+    private void UpdateStateInFile(string newState)
+    {
+        try
+        {
+            List<SaveState> states = new();
+            
+            SaveState._mutex.WaitOne();
+            if (File.Exists(s_stateFilePath))
+            {
+                try
+                {
+                    var json = File.ReadAllText(s_stateFilePath);
+                    states = JsonSerializer.Deserialize<List<SaveState>>(json) ?? new List<SaveState>();
+                }
+                catch
+                {
+                    states = new List<SaveState>();
+                }
+            }
+
+            var index = states.FindIndex(s => s.name == this.name);
+            if (index >= 0)
+            {
+                states[index].state = newState;
+            }
+            else
+            {
+                // Créer un nouvel état minimal
+                states.Add(new SaveState
+                {
+                    name = this.name ?? "Unnamed",
+                    state = newState,
+                    totalFilesToCopy = 0,
+                    totalFilesSize = 0,
+                    nbFilesLeftToDo = 0,
+                    progression = 0
+                });
+            }
+
+            var updatedJson = JsonSerializer.Serialize(states, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(s_stateFilePath, updatedJson);
+            SaveState._mutex.ReleaseMutex();
+        }
+        catch
+        {
+            // Erreur silencieuse
+        }
     }
 }

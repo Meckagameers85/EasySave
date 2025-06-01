@@ -61,14 +61,35 @@ namespace EasySaveProject.ViewModels
                     SelectedBackupItems.Add(item);
                 }
             }
-            _isAllSelected = SelectedBackupItems.Count == BackupItems.Count;
+            
+            // CORRECTION : Calculer _isAllSelected basé sur les tâches sélectionnables uniquement
+            var selectableItems = BackupItems
+                .Where(item => item.DataContext is BackupItemViewModel vm && !vm.IsRunning)
+                .ToList();
+            
+            var selectedSelectableItems = selectableItems
+                .Where(item => (item.DataContext as BackupItemViewModel)?.IsSelected == true)
+                .ToList();
+            
+            _isAllSelected = selectableItems.Count > 0 && selectedSelectableItems.Count == selectableItems.Count;
         }
+
         private bool _isAllSelected;
         private void SelectAllBackups()
         {
-            if (_isAllSelected)
+            // Obtenir seulement les tâches non actives
+            var selectableItems = BackupItems
+                .Where(item => item.DataContext is BackupItemViewModel vm && !vm.IsRunning)
+                .ToList();
+
+            // Vérifier si toutes les tâches sélectionnables sont déjà sélectionnées
+            bool allSelectableSelected = selectableItems.Count > 0 && 
+                selectableItems.All(item => (item.DataContext as BackupItemViewModel)?.IsSelected == true);
+
+            if (allSelectableSelected)
             {
-                foreach (var item in BackupItems)
+                // Désélectionner toutes les tâches sélectionnables
+                foreach (var item in selectableItems)
                 {
                     if (item.DataContext is BackupItemViewModel viewModel)
                     {
@@ -79,15 +100,17 @@ namespace EasySaveProject.ViewModels
             }
             else
             {
-                foreach (var item in BackupItems)
+                // Sélectionner toutes les tâches sélectionnables
+                foreach (var item in selectableItems)
                 {
                     if (item.DataContext is BackupItemViewModel viewModel)
                     {
                         viewModel.IsSelected = true;
                     }
                 }
-                _isAllSelected = true;
+                _isAllSelected = selectableItems.Count > 0;
             }
+            
             ReloadSeletcedBackups();
         }
 
@@ -95,7 +118,36 @@ namespace EasySaveProject.ViewModels
         {
             if (SelectedBackupItems.Count == 0)
                 return;
-            var names = SelectedBackupItems
+
+            // CORRECTION : Filtrer seulement les tâches non actives
+            var deletableItems = SelectedBackupItems
+                .Where(item => item.DataContext is BackupItemViewModel vm && !vm.IsRunning)
+                .ToList();
+
+            var runningItems = SelectedBackupItems
+                .Where(item => item.DataContext is BackupItemViewModel vm && vm.IsRunning)
+                .ToList();
+
+            // Message d'information si des tâches actives sont ignorées
+            if (runningItems.Count > 0)
+            {
+                var runningNames = runningItems
+                    .Select(item => (item.DataContext as BackupItemViewModel)?.BackupName)
+                    .Where(name => !string.IsNullOrWhiteSpace(name))
+                    .ToList();
+
+                System.Windows.MessageBox.Show(
+                    $"{runningItems.Count} sauvegarde(s) en cours ignorée(s) : {string.Join(", ", runningNames)}",
+                    "Information",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Information
+                );
+            }
+
+            if (deletableItems.Count == 0)
+                return;
+
+            var names = deletableItems
                 .Select(item => (item.DataContext as BackupItemViewModel)?.BackupName)
                 .Where(name => !string.IsNullOrWhiteSpace(name))
                 .ToList();
@@ -112,24 +164,54 @@ namespace EasySaveProject.ViewModels
             if (confirmation != System.Windows.MessageBoxResult.Yes)
                 return;
 
-            foreach (var item in SelectedBackupItems)
+            foreach (var item in deletableItems)
             {
                 if (item.DataContext is BackupItemViewModel viewModel)
                 {
                     _backupManager.DeleteBackup(viewModel.SaveTask);
                 }
             }
+            
             if (System.Windows.Application.Current.MainWindow is MainWindow mainWindow)
             {
                 mainWindow.Reload();
             }
         }
+
         public void ExecuteSelectedBackups()
         {
             if (SelectedBackupItems.Count == 0)
                 return;
 
-            foreach (var item in SelectedBackupItems)
+            // CORRECTION : Filtrer seulement les tâches non actives
+            var executableItems = SelectedBackupItems
+                .Where(item => item.DataContext is BackupItemViewModel vm && !vm.IsRunning)
+                .ToList();
+
+            var runningItems = SelectedBackupItems
+                .Where(item => item.DataContext is BackupItemViewModel vm && vm.IsRunning)
+                .ToList();
+
+            // Message d'information si des tâches actives sont ignorées
+            if (runningItems.Count > 0)
+            {
+                var runningNames = runningItems
+                    .Select(item => (item.DataContext as BackupItemViewModel)?.BackupName)
+                    .Where(name => !string.IsNullOrWhiteSpace(name))
+                    .ToList();
+
+                System.Windows.MessageBox.Show(
+                    $"{runningItems.Count} sauvegarde(s) déjà en cours ignorée(s) : {string.Join(", ", runningNames)}",
+                    "Information",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Information
+                );
+            }
+
+            if (executableItems.Count == 0)
+                return;
+
+            foreach (var item in executableItems)
             {
                 if (item.DataContext is BackupItemViewModel viewModel)
                 {
@@ -137,6 +219,8 @@ namespace EasySaveProject.ViewModels
                 }
             }
         }
+
+        
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
