@@ -16,6 +16,9 @@ public class SaveTask
 
     public static SettingsManager? s_settingsManager { get; set; }
     private ProcessMonitor? _processMonitor;
+    private ManualResetEvent _pauseEvent = new(true); // true = non bloquant au début
+    private CancellationTokenSource _cts = new();
+
 
     public SaveType? type { get; set; }
 
@@ -111,20 +114,146 @@ public class SaveTask
         */
         return $"[bold]\"{sourceDirectory}\"[/] ========> [bold]\"{targetDirectory}\"[/]";
     }
+    public void Pause()
+    {
+        _pauseEvent.Reset(); // pause le thread
+
+        // Charger les états actuels
+        List<SaveState> states = new();
+        SaveState._mutex.WaitOne();
+
+        try
+        {
+            if (File.Exists(s_stateFilePath))
+            {
+                var json = File.ReadAllText(s_stateFilePath);
+                states = JsonSerializer.Deserialize<List<SaveState>>(json) ?? new List<SaveState>();
+            }
+
+            // Trouver l'état correspondant à cette sauvegarde
+            var index = states.FindIndex(s => s.name == this.name);
+            if (index >= 0)
+            {
+                // Modifier le state en "PAUSED"
+                states[index].state = "PAUSED";
+            }
+            else
+            {
+                // Pas trouvé, on ajoute un nouvel état minimal (optionnel)
+                states.Add(new SaveState
+                {
+                    name = this.name ?? "Unnamed",
+                    state = "PAUSED",
+                    // Tu peux ajouter ici d'autres champs si tu veux
+                });
+            }
+
+            // Sauvegarder dans le fichier
+            var updatedJson = JsonSerializer.Serialize(states, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(s_stateFilePath, updatedJson);
+        }
+        catch
+        {
+            // erreur silencieuse
+        }
+        finally
+        {
+            SaveState._mutex.ReleaseMutex();
+        }
+    }
+
+
+    public void Resume()
+    {
+        _pauseEvent.Set();
+
+        List<SaveState> states = new();
+        SaveState._mutex.WaitOne();
+
+        try
+        {
+            if (File.Exists(s_stateFilePath))
+            {
+                var json = File.ReadAllText(s_stateFilePath);
+                states = JsonSerializer.Deserialize<List<SaveState>>(json) ?? new List<SaveState>();
+            }
+
+            var index = states.FindIndex(s => s.name == this.name);
+            if (index >= 0)
+            {
+                states[index].state = "ACTIVE";
+            }
+            else
+            {
+                states.Add(new SaveState
+                {
+                    name = this.name ?? "Unnamed",
+                    state = "ACTIVE",
+                });
+            }
+
+            var updatedJson = JsonSerializer.Serialize(states, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(s_stateFilePath, updatedJson);
+        }
+        catch
+        {
+            // erreur silencieuse
+        }
+        finally
+        {
+            SaveState._mutex.ReleaseMutex();
+        }
+    }
+    public void Stop()
+    {
+        _cts.Cancel();
+        _pauseEvent.Set();
+        List<SaveState> states = new();
+        SaveState._mutex.WaitOne();
+
+        try
+        {
+            if (File.Exists(s_stateFilePath))
+            {
+                var json = File.ReadAllText(s_stateFilePath);
+                states = JsonSerializer.Deserialize<List<SaveState>>(json) ?? new List<SaveState>();
+            }
+
+            var index = states.FindIndex(s => s.name == this.name);
+            if (index >= 0)
+            {
+                states[index].state = "STOPPED";
+                // Tu peux aussi vouloir remettre progression à 0, nbFilesLeftToDo à totalFiles etc. selon ta logique
+            }
+            else
+            {
+                states.Add(new SaveState
+                {
+                    name = this.name ?? "Unnamed",
+                    state = "STOPPED",
+                });
+            }
+
+            var updatedJson = JsonSerializer.Serialize(states, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(s_stateFilePath, updatedJson);
+        }
+        catch
+        {
+            // erreur silencieuse
+        }
+        finally
+        {
+            SaveState._mutex.ReleaseMutex();
+        }
+    }
+
 
     public void Run()
     {
-        /*
-            Visibility : public
-            Input : None
-            Output : None
-            Description : Run the backup process for the current SaveTask object.
-        */
-
-        // 🆕 AJOUT : Réinitialiser le ProcessMonitor au cas où les paramètres auraient changé
+        _cts = new CancellationTokenSource();
+        _pauseEvent.Set(); // S'assurer que ce n'est pas en pause
         InitializeProcessMonitor();
 
-        // 🆕 AJOUT : VÉRIFICATION AVANT DE COMMENCER (Scénario B)
         if (_processMonitor?.IsBusinessSoftwareRunning() == true)
         {
             var blockEntry = new LoggerLib.LogEntry
@@ -139,7 +268,6 @@ public class SaveTask
             s_logger?.Log(blockEntry);
 
             Console.WriteLine($"🚫 SAUVEGARDE BLOQUÉE - Logiciel métier '{s_settingsManager?.businessSoftwareName}' détecté");
-            // 🚫 REFUSE DE DÉMARRER - sortie immédiate
             return;
         }
 
@@ -158,13 +286,15 @@ public class SaveTask
 
         foreach (var file in files)
         {
+            _pauseEvent.WaitOne(); // Attend si en pause
+            if (_cts.Token.IsCancellationRequested)
+            {
+                Console.WriteLine("⛔ Sauvegarde arrêtée par l'utilisateur.");
+                return;
+            }
 
-            // je veux faire un sleep de 4s
-            System.Threading.Thread.Sleep(1000);
-            // 🆕 VÉRIFICATION PENDANT LA SAUVEGARDE (Scénario C)
             if (_processMonitor?.IsBusinessSoftwareRunning() == true)
             {
-                // Log de l'arrêt dans le fichier de log
                 var stopEntry = new LoggerLib.LogEntry
                 {
                     timestamp = DateTime.UtcNow,
@@ -172,12 +302,11 @@ public class SaveTask
                     source = file,
                     destination = $"STOPPED - Business software detected: {s_settingsManager?.businessSoftwareName}",
                     sizeBytes = 0,
-                    transferTimeMs = -1 // Code d'arrêt
+                    transferTimeMs = -1
                 };
                 s_logger?.Log(stopEntry);
 
                 Console.WriteLine($"⏹️ SAUVEGARDE INTERROMPUE - Logiciel métier '{s_settingsManager?.businessSoftwareName}' détecté");
-                // Arrêt immédiat de la sauvegarde
                 break;
             }
 
@@ -242,19 +371,23 @@ public class SaveTask
             filesRemaining--;
             int progression = (int)(((double)(totalFiles - filesRemaining) / totalFiles) * 100);
 
-            var state = new SaveState
+            // NE PAS écrire "ACTIVE" si on est en pause
+            if (_pauseEvent.WaitOne(0))
             {
-                name = name ?? "Unnamed",
-                sourceFilePath = file,
-                targetFilePath = destinationPath,
-                state = "ACTIVE",
-                totalFilesToCopy = totalFiles,
-                totalFilesSize = totalSize,
-                nbFilesLeftToDo = filesRemaining,
-                progression = progression
-            };
-
-            UpdateRealtimeState(state);
+                var state = new SaveState
+                {
+                    name = name ?? "Unnamed",
+                    sourceFilePath = file,
+                    targetFilePath = destinationPath,
+                    state = "ACTIVE",
+                    totalFilesToCopy = totalFiles,
+                    totalFilesSize = totalSize,
+                    nbFilesLeftToDo = filesRemaining,
+                    progression = progression
+                };
+                UpdateRealtimeState(state);
+            }
+            // Sinon on est en pause : ne rien faire (Pause() aura écrit "PAUSED")
         }
 
         var finalState = new SaveState
@@ -272,6 +405,7 @@ public class SaveTask
         UpdateRealtimeState(finalState);
         Console.WriteLine("✅ Sauvegarde terminée");
     }
+
 
     private void UpdateRealtimeState(SaveState currentState)
     {

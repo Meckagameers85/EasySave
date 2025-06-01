@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows.Input;
 using System.IO;
+using System.Text.Json;
 
 using EasySaveProject.Models;
 
@@ -10,9 +11,17 @@ public class BackupItemViewModel : INotifyPropertyChanged
 {
     private readonly BackupManager _backupManager;
     private readonly LanguageManager _languageManager;
+    private Timer? _stateUpdateTimer; // 🆕 Timer pour lire le state.json
+
+    // 🆕 AJOUT MINIMAL : Progress pour l'UI
+    public BackupProgress Progress { get; } = new BackupProgress();
+
     public ICommand EditBackupCommand { get; }
     public ICommand DeleteBackupCommand { get; }
     public ICommand StartBackupCommand { get; }
+    public ICommand PauseBackupCommand { get; }  // 🆕 Nouveau
+    public ICommand StopBackupCommand { get; }   // 🆕 Nouveau
+
     public event Action? RequestClose;
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -37,9 +46,112 @@ public class BackupItemViewModel : INotifyPropertyChanged
         SaveTask = save;
         IsSelected = false;
 
-        EditBackupCommand = new RelayCommand(EditBackup);
-        DeleteBackupCommand = new RelayCommand(DeleteBackup);
-        StartBackupCommand = new RelayCommand(StartBackup);
+        EditBackupCommand = new RelayCommand(EditBackup, () => Progress.State != BackupState.Running);
+        DeleteBackupCommand = new RelayCommand(DeleteBackup, () => Progress.State != BackupState.Running);
+        StartBackupCommand = new RelayCommand(StartBackup, () => Progress.CanPlay);
+        PauseBackupCommand = new RelayCommand(PauseBackup, () => Progress.CanPause);
+        StopBackupCommand = new RelayCommand(StopBackup, () => Progress.CanStop);
+
+        // 🆕 S'abonner aux changements pour mettre à jour les boutons
+        Progress.PropertyChanged += (s, e) => CommandManager.InvalidateRequerySuggested();
+
+        // 🆕 CORRECTION : Lire l'état initial depuis state.json
+        LoadInitialStateFromFile();
+
+        // 🆕 CORRECTION : Démarrer un timer pour lire régulièrement le state.json
+        _stateUpdateTimer = new Timer(UpdateStateFromFile, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    // 🆕 Méthode pour charger l'état initial
+    private void LoadInitialStateFromFile()
+    {
+        var currentState = ReadCurrentStateFromFile();
+        if (currentState != null)
+        {
+            UpdateProgressFromSaveState(currentState);
+        }
+    }
+
+    // 🆕 Méthode pour lire périodiquement le state.json
+    private void UpdateStateFromFile(object? state)
+    {
+        try
+        {
+            var currentState = ReadCurrentStateFromFile();
+            if (currentState != null)
+            {
+                // Mettre à jour sur le thread UI
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(() =>
+                {
+                    UpdateProgressFromSaveState(currentState);
+                });
+            }
+        }
+        catch
+        {
+            // Ignorer les erreurs de lecture
+        }
+    }
+
+    // 🆕 Méthode pour lire le state.json
+    private SaveState? ReadCurrentStateFromFile()
+    {
+        var stateFilePath = SaveTask.s_stateFilePath ?? "state.json";
+
+        if (!File.Exists(stateFilePath))
+            return null;
+
+        try
+        {
+            var json = File.ReadAllText(stateFilePath);
+            var states = JsonSerializer.Deserialize<List<SaveState>>(json);
+
+            return states?.FirstOrDefault(s => s.name == _saveTask.name);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    // 🆕 Méthode pour mettre à jour le Progress depuis SaveState
+    private void UpdateProgressFromSaveState(SaveState saveState)
+    {
+        // Mettre à jour le pourcentage
+        Progress.ProgressPercentage = saveState.progression;
+
+        // Mettre à jour l'état
+        Progress.State = saveState.state switch
+        {
+            "ACTIVE" => BackupState.Running,
+            "END" => BackupState.Completed,
+            "ERROR" => BackupState.Error,
+            "STOPPED" => BackupState.Stopped,
+            "PAUSED" => BackupState.Paused,
+            _ => BackupState.NotStarted
+        };
+
+        // Mettre à jour le message de statut
+        if (saveState.state == "ACTIVE")
+        {
+            var fileName = Path.GetFileName(saveState.sourceFilePath);
+            Progress.StatusMessage = $"En cours: {fileName} ({saveState.totalFilesToCopy - saveState.nbFilesLeftToDo}/{saveState.totalFilesToCopy})";
+        }
+        else if (saveState.state == "END")
+        {
+            Progress.StatusMessage = "Sauvegarde terminée";
+        }
+        else if (saveState.state == "ERROR")
+        {
+            Progress.StatusMessage = "Erreur lors de la sauvegarde";
+        }
+        else
+        {
+            Progress.StatusMessage = "Prêt";
+        }
+
+        // Mettre à jour les propriétés liées
+        OnPropertyChanged(nameof(BackupStateText));
     }
 
     private bool _isSelected;
@@ -59,7 +171,7 @@ public class BackupItemViewModel : INotifyPropertyChanged
             }
         }
     }
-    
+
     public string BackupName
     {
         get => _saveTask.name;
@@ -123,6 +235,24 @@ public class BackupItemViewModel : INotifyPropertyChanged
         }
     }
 
+    // 🆕 Propriétés pour l'état (délègue au Progress)
+    public string BackupStateText
+    {
+        get
+        {
+            return Progress.State switch
+            {
+                BackupState.NotStarted => "Prêt",
+                BackupState.Running => "En cours",
+                BackupState.Paused => "En pause",
+                BackupState.Stopped => "Arrêté",
+                BackupState.Completed => "Terminé",
+                BackupState.Error => "Erreur",
+                _ => "Inconnu"
+            };
+        }
+    }
+
     private void EditBackup()
     {
         var backupWindow = new BackupWindow(
@@ -156,14 +286,49 @@ public class BackupItemViewModel : INotifyPropertyChanged
             }
         }
     }
+
+    // 🔄 MÉTHODE EXISTANTE : Juste mise à jour du Progress
     public void StartBackup()
     {
-        _backupManager.RunBackup(_saveTask);
+        if (Progress.State == BackupState.Paused)
+        {
+            // Si en pause, juste reprendre la sauvegarde existante
+            _saveTask.Resume();
+            Progress.State = BackupState.Running;
+            Progress.StatusMessage = "Reprise...";
+        }
+        else if (Progress.State == BackupState.NotStarted || Progress.State == BackupState.Stopped)
+        {
+            // Si pas encore commencé ou arrêtée, lancer une nouvelle sauvegarde
+            Progress.State = BackupState.Running;
+            Progress.StatusMessage = "Démarrage...";
+            _backupManager.RunBackup(_saveTask);
+        }
+    }
+
+    // 🆕 NOUVELLES MÉTHODES (pour l'instant, juste des placeholders)
+    private void PauseBackup()
+    {
+        _saveTask.Pause();
+        Progress.State = BackupState.Paused;
+        Progress.StatusMessage = "En pause...";
+    }
+
+    private void StopBackup()
+    {
+        _saveTask.Stop();
+        Progress.State = BackupState.Stopped;
+        Progress.StatusMessage = "Arrêtée.";
+    }
+
+    // 🆕 Nettoyage du timer
+    public void Dispose()
+    {
+        _stateUpdateTimer?.Dispose();
     }
 
     protected virtual void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-
 }
