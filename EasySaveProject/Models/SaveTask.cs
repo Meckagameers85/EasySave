@@ -203,6 +203,7 @@ public class SaveTask
                         // Reporter ce gros fichier pour plus tard
                         deferredLargeFiles.Add(file);
                         continue;
+                    }
                 }
 
                 // Copier le fichier
