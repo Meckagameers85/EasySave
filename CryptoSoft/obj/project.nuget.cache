@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "o7UGf/Bz7L4=",
+  "success": true,
+  "projectFilePath": "D:\\A3 2024-2025\\6-Génie logiciel (28_04_2025-30_04_2025 & 09_05_2025-02_06_2025)\\Meckagameers85\\Test\\CryptoSoft\\CryptoSoft.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Thomas\\.nuget\\packages\\microsoft.net.illink.tasks\\9.0.5\\microsoft.net.illink.tasks.9.0.5.nupkg.sha512",
+    "C:\\Users\\Thomas\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\9.0.5\\microsoft.netcore.app.runtime.win-x64.9.0.5.nupkg.sha512",
+    "C:\\Users\\Thomas\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\9.0.5\\microsoft.windowsdesktop.app.runtime.win-x64.9.0.5.nupkg.sha512",
+    "C:\\Users\\Thomas\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\9.0.5\\microsoft.aspnetcore.app.runtime.win-x64.9.0.5.nupkg.sha512"
+  ],
+  "logs": []
+}
