@@ -13,10 +13,14 @@
 
     <!-- Resources : Style pour les boutons arrondis -->
     <Window.Resources>
-        <Style x:Key="RoundedButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="LightGray"/>
-            <Setter Property="BorderBrush" Value="Gray"/>
-            <Setter Property="BorderThickness" Value="1"/>
+        <Style x:Key="RoundedButtonStyle"
+                TargetType="Button">
+            <Setter Property="Background"
+                    Value="LightGray"/>
+            <Setter Property="BorderBrush"
+                    Value="Gray"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -25,7 +29,8 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="10"
                                 Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -37,7 +42,9 @@
     <Grid>
 
         <!-- Barre supérieure (drag + fermeture) -->
-        <Grid Height="40" VerticalAlignment="Top" MouseDown="Window_MouseDown">
+        <Grid Height="40"
+                VerticalAlignment="Top"
+                MouseDown="Window_MouseDown">
             <TextBlock Text="{Binding WindowTitle, UpdateSourceTrigger=PropertyChanged}"
                        FontSize="20"
                        FontWeight="Bold"
@@ -58,17 +65,25 @@
         </Grid>
 
         <!-- Contenu central -->
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" >
+        <StackPanel VerticalAlignment="Center"
+                HorizontalAlignment="Center">
 
             <!-- Langue -->
-            <Border Background="#888" CornerRadius="15" Padding="10,0,5,0" Margin="0,5" Height="40" Width="360">
+            <Border Background="#888"
+                    CornerRadius="15"
+                    Padding="10,0,5,0"
+                    Margin="0,5"
+                    Height="40"
+                    Width="360">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="80"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="{Binding LanguageLabel, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBlock Text="{Binding LanguageLabel, UpdateSourceTrigger=PropertyChanged}"
+                            VerticalAlignment="Center"
+                            Foreground="White"/>
                     <ComboBox x:Name="LanguageComboBox"
                               Grid.Column="1"
                               Width="160"
@@ -76,25 +91,40 @@
                               HorizontalAlignment="Left"
                               SelectedValuePath="Uid"
                               SelectedValue="{Binding SelectedLanguageCode, UpdateSourceTrigger=PropertyChanged}">
-                        <ComboBoxItem Uid="en" Content="{Binding EnglishOption, UpdateSourceTrigger=PropertyChanged}" IsSelected="True"/>
-                        <ComboBoxItem Uid="fr" Content="{Binding FrenchOption, UpdateSourceTrigger=PropertyChanged}"/>
-                        <ComboBoxItem Uid="es" Content="{Binding SpanishOption, UpdateSourceTrigger=PropertyChanged}"/>
-                        <ComboBoxItem Uid="de" Content="{Binding GermanOption, UpdateSourceTrigger=PropertyChanged}"/>
-                        <ComboBoxItem Uid="ru" Content="{Binding RussianOption, UpdateSourceTrigger=PropertyChanged}"/>
-                        <ComboBoxItem Uid="it" Content="{Binding ItalianOption, UpdateSourceTrigger=PropertyChanged}"/>
-                        <ComboBoxItem Uid="pt" Content="{Binding PortugueseOption, UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBoxItem Uid="en"
+                                Content="{Binding EnglishOption, UpdateSourceTrigger=PropertyChanged}"
+                                IsSelected="True"/>
+                        <ComboBoxItem Uid="fr"
+                                Content="{Binding FrenchOption, UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBoxItem Uid="es"
+                                Content="{Binding SpanishOption, UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBoxItem Uid="de"
+                                Content="{Binding GermanOption, UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBoxItem Uid="ru"
+                                Content="{Binding RussianOption, UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBoxItem Uid="it"
+                                Content="{Binding ItalianOption, UpdateSourceTrigger=PropertyChanged}"/>
+                        <ComboBoxItem Uid="pt"
+                                Content="{Binding PortugueseOption, UpdateSourceTrigger=PropertyChanged}"/>
                     </ComboBox>
                 </Grid>
             </Border>
             <!-- Format -->
-            <Border Background="#888" CornerRadius="15" Padding="10,0,5,0" Margin="0,5" Height="40" Width="360">
+            <Border Background="#888"
+                    CornerRadius="15"
+                    Padding="10,0,5,0"
+                    Margin="0,5"
+                    Height="40"
+                    Width="360">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="80"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="{Binding FormatLabel, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBlock Text="{Binding FormatLabel, UpdateSourceTrigger=PropertyChanged}"
+                            VerticalAlignment="Center"
+                            Foreground="White"/>
                     <ComboBox x:Name="FormatLogComboBox"
                               Grid.Column="1"
                               Width="160"
@@ -102,12 +132,51 @@
                               HorizontalAlignment="Left"
                               SelectedValuePath="Uid"
                               SelectedValue="{Binding SelectedLogFormat, UpdateSourceTrigger=PropertyChanged}">
-                        <ComboBoxItem Uid="JSON" IsSelected="True">JSON</ComboBoxItem>
+                        <ComboBoxItem Uid="JSON"
+                                IsSelected="True">JSON</ComboBoxItem>
                         <ComboBoxItem Uid="XML">XML</ComboBoxItem>
                     </ComboBox>
                 </Grid>
             </Border>
-            <Border Background="#888" CornerRadius="15" Padding="10,0,5,0" Margin="0,5" Height="40" Width="360">
+            <Border Background="#888"
+                    CornerRadius="15"
+                    Padding="10,0,5,0"
+                    Margin="0,5"
+                    Height="40"
+                    Width="360">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="30"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="{Binding BandwidthThresholdLabel, UpdateSourceTrigger=PropertyChanged}"
+                               VerticalAlignment="Center"
+                               Foreground="White"
+                               FontSize="10"/>
+                    <TextBox Grid.Column="1"
+                             x:Name="bandwidthThresholdBox"
+                             Width="100"
+                             Height="25"
+                             Margin="0"
+                             VerticalContentAlignment="Center"
+                             Text="{Binding BandwidthThresholdMB, UpdateSourceTrigger=PropertyChanged, StringFormat=F1}"
+                             HorizontalAlignment="Left"/>
+                    <TextBlock Grid.Column="2"
+                               Text="MB"
+                               VerticalAlignment="Center"
+                               Foreground="LightGray"
+                               FontSize="12"
+                               HorizontalAlignment="Center"/>
+                </Grid>
+            </Border>
+            <Border Background="#888"
+                    CornerRadius="15"
+                    Padding="10,0,5,0"
+                    Margin="0,5"
+                    Height="40"
+                    Width="360">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="80"/>
@@ -115,21 +184,45 @@
                         <ColumnDefinition Width="20"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="{Binding BusinessSoftwareNameLabel, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Foreground="White"/>
-                    <TextBox Grid.Column="1" x:Name="businessSoftwareNameBox" Width="160" Height="25" Margin="0" VerticalContentAlignment="Center" Text="{Binding BusinessSoftwareName, UpdateSourceTrigger=PropertyChanged}"/>
-                    <Button Grid.Column="2" x:Name="businessSoftwareTestButton" Content="Test" Width="30" Height="25" Margin="0,0,5,0" VerticalAlignment="Center" HorizontalAlignment="Right" Command="{Binding TestBusinessSoftwareCommand}"/>
+                    <TextBlock Text="{Binding BusinessSoftwareNameLabel, UpdateSourceTrigger=PropertyChanged}"
+                            VerticalAlignment="Center"
+                            Foreground="White"/>
+                    <TextBox Grid.Column="1"
+                            x:Name="businessSoftwareNameBox"
+                            Width="160"
+                            Height="25"
+                            Margin="0"
+                            VerticalContentAlignment="Center"
+                            Text="{Binding BusinessSoftwareName, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Grid.Column="2"
+                            x:Name="businessSoftwareTestButton"
+                            Content="Test"
+                            Width="30"
+                            Height="25"
+                            Margin="0,0,5,0"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Right"
+                            Command="{Binding TestBusinessSoftwareCommand}"/>
                 </Grid>
             </Border>
         </StackPanel>
-        
+
 
         <!-- Boutons d'action -->
         <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Bottom"
                     Margin="0,0,0,10">
-            <Button Content="Save" Width="60" Margin="5" Style="{StaticResource RoundedButtonStyle}" Command="{Binding SaveCommand}"/>
-            <Button Content="Reset All" Width="80" Margin="5" Style="{StaticResource RoundedButtonStyle}" Command="{Binding ResetCommand}"/>
+            <Button Content="Save"
+                    Width="60"
+                    Margin="5"
+                    Style="{StaticResource RoundedButtonStyle}"
+                    Command="{Binding SaveCommand}"/>
+            <Button Content="Reset All"
+                    Width="80"
+                    Margin="5"
+                    Style="{StaticResource RoundedButtonStyle}"
+                    Command="{Binding ResetCommand}"/>
         </StackPanel>
     </Grid>
 </Window>

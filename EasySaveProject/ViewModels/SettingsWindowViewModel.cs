@@ -25,13 +25,14 @@ public class SettingsWindowViewModel : INotifyPropertyChanged
         SelectedLanguageCode = _settingsManager.currentLanguage;
         SelectedLogFormat = _settingsManager.formatLogger;
         BusinessSoftwareName = _settingsManager.businessSoftwareName;
+        BandwidthThresholdMB = _settingsManager.bandwidthThresholdMB; // NOUVEAU
 
         SaveCommand = new RelayCommand(SaveSettings);
         ResetCommand = new RelayCommand(ResetSettings);
         CloseCommand = new RelayCommand(CloseWindow);
         TestBusinessSoftwareCommand = new RelayCommand(TestBusinessSoftware);
-        
     }
+
     #region Labels
     public string WindowTitle => _languageManager.Translate("settings.title");
     public string SaveButtonText => _languageManager.Translate("Settings.SaveButtonText");
@@ -39,14 +40,16 @@ public class SettingsWindowViewModel : INotifyPropertyChanged
     public string LanguageLabel => _languageManager.Translate("Settings.LanguageLabel");
     public string FormatLabel => _languageManager.Translate("Settings.FormatLabel");
     public string BusinessSoftwareNameLabel => _languageManager.Translate("Settings.businessSoftwareNameLabel");
+    public string BandwidthThresholdLabel => "Seuil fichiers volumineux (MB):"; // NOUVEAU
     public string EnglishOption => _languageManager.Translate("lang.en");
     public string FrenchOption => _languageManager.Translate("lang.fr");
     public string SpanishOption => _languageManager.Translate("lang.es");
     public string GermanOption => _languageManager.Translate("lang.de");
-    public string RussianOption => _languageManager.Translate("lang.ru");    
+    public string RussianOption => _languageManager.Translate("lang.ru");
     public string ItalianOption => _languageManager.Translate("lang.it");
     public string PortugueseOption => _languageManager.Translate("lang.pt");
     #endregion
+
     private string _languageCode = "en";
     public string SelectedLanguageCode
     {
@@ -89,11 +92,31 @@ public class SettingsWindowViewModel : INotifyPropertyChanged
         }
     }
 
+    // NOUVELLE PROPRIÉTÉ : Seuil de bande passante
+    private double _bandwidthThresholdMB = 10.0;
+    public double BandwidthThresholdMB
+    {
+        get => _bandwidthThresholdMB;
+        set
+        {
+            // Valider la valeur
+            if (value < 1.0) value = 1.0;
+            if (value > 1000.0) value = 1000.0;
+
+            if (Math.Abs(_bandwidthThresholdMB - value) > 0.01)
+            {
+                _bandwidthThresholdMB = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     private void SetSettings()
     {
         _settingsManager.SetBusinessSoftwareName(_businessSoftwareName);
         _settingsManager.ChangeLanguage(SelectedLanguageCode);
         _settingsManager.ChangeFormatLogger(SelectedLogFormat);
+        _settingsManager.SetBandwidthThreshold(_bandwidthThresholdMB); // NOUVEAU
         _languageManager.Load(SelectedLanguageCode);
     }
 
@@ -108,6 +131,7 @@ public class SettingsWindowViewModel : INotifyPropertyChanged
         BusinessSoftwareName = "";
         SelectedLanguageCode = "en";
         SelectedLogFormat = "JSON";
+        BandwidthThresholdMB = 10.0; // NOUVEAU : Reset à 10 MB
         SetSettings();
         ReloadWindow();
     }
@@ -125,12 +149,14 @@ public class SettingsWindowViewModel : INotifyPropertyChanged
     {
         OnPropertyChanged(nameof(SelectedLanguageCode));
         OnPropertyChanged(nameof(SelectedLogFormat));
+        OnPropertyChanged(nameof(BandwidthThresholdMB)); // NOUVEAU
         OnPropertyChanged(nameof(WindowTitle));
         OnPropertyChanged(nameof(SaveButtonText));
         OnPropertyChanged(nameof(ResetButtonText));
         OnPropertyChanged(nameof(LanguageLabel));
         OnPropertyChanged(nameof(FormatLabel));
         OnPropertyChanged(nameof(BusinessSoftwareNameLabel));
+        OnPropertyChanged(nameof(BandwidthThresholdLabel)); // NOUVEAU
         OnPropertyChanged(nameof(EnglishOption));
         OnPropertyChanged(nameof(FrenchOption));
         OnPropertyChanged(nameof(SpanishOption));
