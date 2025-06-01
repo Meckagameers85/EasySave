@@ -1,15 +1,18 @@
 using System.IO;
 using Spectre.Console;
 using System.Text.Json;
+using LoggerLib;
 
 namespace EasySaveProject.Models;
 
 public class BackupManager
 {
+    private static readonly Lazy<BackupManager> _instance = new(() => new BackupManager());
+    public static BackupManager instance => _instance.Value;
     public List<SaveTask> saveTasks { get; set; }
     public string backupFile = "saves.json";
 
-    public BackupManager()
+    private BackupManager()
     {
         /*
             - Visibility : public
@@ -21,6 +24,11 @@ public class BackupManager
         LoadBackup();
     }
 
+    public bool BackupExists(string name)
+    {
+        return saveTasks?.Any(b => b.name?.Equals(name, StringComparison.OrdinalIgnoreCase)== true) == true;
+    }
+
     public void SaveBackup()
     {
         /*
@@ -29,7 +37,7 @@ public class BackupManager
             - Output : None
             - Description : Save the current state of saveTasks into a JSON file.
         */
-        var json = JsonSerializer.Serialize(saveTasks, new JsonSerializerOptions { WriteIndented = true });
+        var json = JsonSerializer.Serialize(saveTasks ?? new List<SaveTask>(), new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(backupFile, json);
     }
     public void AddBackup(SaveTask saveTask)
@@ -43,7 +51,6 @@ public class BackupManager
         saveTasks.Add(saveTask);
         SaveBackup();
     }
-
     public List<SaveTask> GetBackups()
     {
         /*
@@ -67,21 +74,43 @@ public class BackupManager
         SaveBackup();
     }
 
+    private static readonly SemaphoreSlim _semaphore = new(3,3);
+
     public bool RunBackup(SaveTask saveTask)
     {
         /*
             - Visibility : public
             - Input : SaveTask saveTask
             - Output : bool 
-            - Description : Run the backup process for the given SaveTask.
+            - Description : Run the backup process for the given SaveTask. Uses a semaphore to prevent concurrent access.
         */
         if (string.IsNullOrEmpty(saveTask.sourceDirectory) || string.IsNullOrEmpty(saveTask.targetDirectory))
         {
             return false;
         }
 
-        AnsiConsole.MarkupLine($"[green]{saveTask.WayToString()}[/]");
-        saveTask.Run();
+        _semaphore.Wait();
+        try
+        {
+            // Create a new thread to run the backup task
+            Thread t = new Thread(() =>
+            {
+                try
+                {
+                    saveTask.Run();
+                    AnsiConsole.MarkupLine($"[green]{saveTask.WayToString()}[/]");
+                }
+                catch (Exception ex)
+                {
+                    AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
+                }
+            });
+            t.Start();  
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
         return true;
     }
     
@@ -141,6 +170,22 @@ public class BackupManager
         if (index != -1)
         {
             saveTasks.RemoveAt(index);
+            SaveBackup();
+        }
+    }
+
+    public void RenameBackup(string name, string newName)
+    {
+        /*
+            - Visibility : public
+            - Input : string name, string newName
+            - Output : None
+            - Description : Rename a SaveTask in the saveTasks list and save the backup.
+        */
+        var index = saveTasks.FindIndex(s => s.name == name);
+        if (index != -1)
+        {
+            saveTasks[index].name = newName;
             SaveBackup();
         }
     }

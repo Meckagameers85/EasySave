@@ -1,71 +1,76 @@
 using System.Text.Json;
 using LoggerLib;
+using System.IO;
 
 namespace EasySaveProject.Models;
 
 public class SettingsManager
 {
+    private static readonly Lazy<SettingsManager> _instance = new(() => new SettingsManager());
+    public static SettingsManager instance => _instance.Value;
     public string settingsFile = "settings.json";
     public string currentLanguage { get; private set; } = "en";
-
     public string formatLogger { get; private set; } = "JSON";
+    public string businessSoftwareName { get; private set; } = "";
 
-    public SettingsManager()
+    // NOUVEAU : Seuil pour la gestion de bande passante (en MB)
+    public double bandwidthThresholdMB { get; private set; } = 10.0; // Défaut: 10 MB
+
+    private SettingsManager()
     {
-        /* 
-            Visibility : public
-            Input : None
-            Output : None
-            Description : Constructor of the SettingsManager class. It loads the settings from the JSON file.
-        */
         LoadSettings();
     }
 
     public void ChangeLanguage(string newLanguageCode)
     {
-        /* 
-            Visibility : public
-            Input : string newLanguageCode
-            Output : None
-            Description : Changes the current language to the provided language code and saves the settings into a JSON file.
-        */
         currentLanguage = newLanguageCode;
         SaveSettings();
     }
 
     public void ChangeFormatLogger(string newFormatLogger)
     {
-        /* 
-            Visibility : public
-            Input : string newFormatLogger
-            Output : None
-            Description : Changes the current format logger to the provided format logger and saves the settings into a JSON file.
-        */
         formatLogger = newFormatLogger;
         SaveSettings();
     }
 
+    public void SetBusinessSoftwareName(string softwareName)
+    {
+        businessSoftwareName = softwareName?.Trim() ?? "";
+        SaveSettings();
+    }
+
+    // NOUVELLE MÉTHODE : Définir le seuil de bande passante
+    public void SetBandwidthThreshold(double thresholdMB)
+    {
+        // Valider la valeur (entre 1 MB et 1000 MB)
+        if (thresholdMB < 1.0) thresholdMB = 1.0;
+        if (thresholdMB > 1000.0) thresholdMB = 1000.0;
+
+        bandwidthThresholdMB = thresholdMB;
+        SaveSettings();
+    }
+
+    // MÉTHODE UTILITAIRE : Convertir en bytes pour comparaison
+    public long GetBandwidthThresholdBytes()
+    {
+        return (long)(bandwidthThresholdMB * 1024 * 1024); // MB vers bytes
+    }
+
     private void SaveSettings()
     {
-        /* 
-            Visibility : private
-            Input : None
-            Output : None
-            Description : Saves the current settings into a JSON file.
-        */
-        var settings = new SettingsData { currentLanguage = this.currentLanguage, formatLogger = this.formatLogger };
+        var settings = new SettingsData
+        {
+            currentLanguage = this.currentLanguage,
+            formatLogger = this.formatLogger,
+            businessSoftwareName = this.businessSoftwareName,
+            bandwidthThresholdMB = this.bandwidthThresholdMB // NOUVEAU
+        };
         var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(settingsFile, json);
     }
 
     private void LoadSettings()
     {
-        /* 
-            Visibility : private
-            Input : None
-            Output : None
-            Description : Loads the settings from a JSON file. If the file does not exist or is invalid, sets the currentLanguage to a default value.
-        */
         if (File.Exists(settingsFile))
         {
             try
@@ -76,12 +81,17 @@ public class SettingsManager
                 {
                     currentLanguage = loaded.currentLanguage;
                     formatLogger = loaded.formatLogger;
+                    businessSoftwareName = loaded.businessSoftwareName ?? "";
+                    bandwidthThresholdMB = loaded.bandwidthThresholdMB; // NOUVEAU
                 }
             }
             catch
             {
-                currentLanguage = "en"; // Default value
-                formatLogger = "JSON"; // Default value
+                // Valeurs par défaut
+                currentLanguage = "en";
+                formatLogger = "JSON";
+                businessSoftwareName = "calc";
+                bandwidthThresholdMB = 10.0; // NOUVEAU : 10 MB par défaut
             }
         }
     }
@@ -90,5 +100,7 @@ public class SettingsManager
     {
         public string currentLanguage { get; set; } = "en";
         public string formatLogger { get; set; } = "JSON";
+        public string businessSoftwareName { get; set; } = "";
+        public double bandwidthThresholdMB { get; set; } = 10.0; // NOUVEAU
     }
 }

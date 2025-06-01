@@ -1,12 +1,18 @@
 @startuml
 
-title "Class Diagram EasySave V1.0"
+title "Class Diagram EasySave 3.0 - Version Finale"
 skinparam linetype polyline
 skinparam linetype ortho
+
 ' Class styling
 skinparam class {
   BackgroundColor White
   ArrowColor #2688d4
+  BorderColor #2688d4
+}
+
+skinparam package {
+  BackgroundColor #f8f9fa
   BorderColor #2688d4
 }
 
@@ -19,22 +25,30 @@ package "LoggerLib" {
         + destination: string
         + sizeBytes: long
         + transferTimeMs: double
+        + ToString(): string
     }
+    
     class Logger { 
         - {readonly} logDirectory: string
         - {static} {readonly} fileLock: object
+        + logFormat: string
         + Logger(logDirectory: string)
+        + Logger(logDirectory: string, logFormat: string)
         + Log(logEntry: LogEntry): void
+        - LogIntoJson(entry: LogEntry): void
+        - LogIntoXml(entry: LogEntry): void
+        - ValidateLogDirectory(): bool
+        - CreateLogFile(): void
     }
-
 }
-package "EasySave" {
 
+package "EasySave" {
   ' MODELS
   package "Models" {
     class ActionItem {
       + name: string
       + ActionItem(actionName: string)
+      + ToString(): string
     }
 
     enum SaveType {
@@ -43,24 +57,32 @@ package "EasySave" {
     }
 
     class SaveTask {
-      + name: string
-      + sourceDirectory: string
-      + targetDirectory: string
+      + name: string?
+      + sourceDirectory: string?
+      + targetDirectory: string?
       + type: SaveType
       + {static} s_logger: Logger
       + {static} s_stateFilePath: string
+      + {static} s_settingsManager: SettingsManager
+      - _processMonitor: ProcessMonitor
       - _saveTypeToString: Dictionary<SaveType, string>
       - _stringToSaveType: Dictionary<string, SaveType>
+      + SaveTask()
       + SaveTask(sourceDirectory: string, targetDirectory: string, name: string, type: SaveType)
       + SetSaveType(type: string): void
       + GetSaveType(): string
       + ToString(): string
       + WayToString(): string
       + Run(): void
+      + ValidateDirectories(): bool
       - UpdateRealtimeState(currentState: SaveState): void
+      - InitializeProcessMonitor(): void
+      - CopyFiles(): void
+      - CalculateTotalSize(): long
     }
 
     class SaveState {
+      + {static} _mutex: Mutex
       + name: string
       + sourceFilePath: string
       + targetFilePath: string
@@ -69,96 +91,398 @@ package "EasySave" {
       + totalFilesSize: long
       + nbFilesLeftToDo: int
       + progression: int
+      + startTime: DateTime
+      + endTime: DateTime?
+      + UpdateProgression(): void
+      + IsCompleted(): bool
     }
 
     class BackupManager {
+      - {static} _instance: Lazy<BackupManager>
+      + {static} instance: BackupManager
+      - {static} _semaphore: SemaphoreSlim
       + saveTasks: List<SaveTask>
       + backupFile: string
-      + BackupManager()
+      - BackupManager()
+      + BackupExists(name: string): bool
       + SaveBackup(): void
       + AddBackup(saveTask: SaveTask): void
       + GetBackups(): List<SaveTask>
       + ClearBackups(): void
       + RunBackup(saveTask: SaveTask): bool
       + LoadBackup(): void
-      + EditBackup(saveTask: SaveTask): string
+      + EditBackup(saveTask: SaveTask): void
       + DeleteBackup(saveTask: SaveTask): string
+      + RenameBackup(name: string, newName: string): void
       + ParseIndexes(input: string, max: int): List<int>
+      + ValidateBackup(saveTask: SaveTask): bool
     }
 
     class LanguageManager {
+      - {static} _instance: Lazy<LanguageManager>
+      + {static} instance: LanguageManager
+      - LanguageManager()
       - _translations: Dictionary<string, string>
+      - _currentLanguage: string
       + Load(newLanguageCode: string): void
       + Translate(key: string): string
+      + GetAvailableLanguages(): List<string>
+      - LoadTranslationFile(languageCode: string): void
     }
 
     class SettingsManager {
+      - {static} _instance: Lazy<SettingsManager>
+      + {static} instance: SettingsManager
       + settingsFile: string
-      + currentLanguage: string
-      + SettingsManager()
+      + currentLanguage: string { get; private set; }
+      + formatLogger: string { get; private set; }
+      + businessSoftwareName: string { get; private set; }
+      - SettingsManager()
       + ChangeLanguage(newLanguageCode: string): void
+      + ChangeFormatLogger(newFormatLogger: string): void
+      + SetBusinessSoftwareName(softwareName: string): void
+      + ResetToDefaults(): void
       - SaveSettings(): void
       - LoadSettings(): void
+      - ValidateSettings(): bool
     }
 
     class SettingsData {
       + currentLanguage: string
+      + formatLogger: string
+      + businessSoftwareName: string
+      + cryptoSoftPath: string
+      + extensionsToEncrypt: List<string>
+      + maxFileSize: long
+    }
+    
+    class ProcessMonitor {
+        - _processNameToWatch: string
+        - _isEnabled: bool
+        + ProcessMonitor(processName: string)
+        + IsBusinessSoftwareRunning(): bool
+        + GetRunningBusinessSoftwareProcesses(): List<Process>
+        + GetProcessNameToWatch(): string
+        + IsMonitoringEnabled(): bool
+        + StartMonitoring(): void
+        + StopMonitoring(): void
     }
 
+    ' Nouvelles classes ajoutées
+    class CryptoSoft {
+        + executablePath: string
+        + supportedExtensions: List<string>
+        + CryptoSoft(path: string)
+        + EncryptFile(filePath: string): bool
+        + DecryptFile(filePath: string): bool
+        + IsFileEncrypted(filePath: string): bool
+        + ValidateExecutable(): bool
+    }
 
+    class FileManager {
+        + {static} CopyFile(source: string, destination: string): bool
+        + {static} CopyDirectory(source: string, destination: string): bool
+        + {static} GetFileSize(filePath: string): long
+        + {static} GetDirectorySize(directoryPath: string): long
+        + {static} IsFileInUse(filePath: string): bool
+        + {static} ValidatePath(path: string): bool
+    }
 
+    ' Relations dans le package Models
     SettingsManager *-- SettingsData
     SaveTask *-- SaveType
-    SaveTask ..> SaveState
+    SaveTask ..> SaveState : "creates/updates"
+    SaveTask ..> SettingsManager : s_settingsManager
+    SaveTask *-- ProcessMonitor : _processMonitor
+    SaveTask ..> Logger : s_logger
+    SaveTask ..> CryptoSoft : "uses"
+    SaveTask ..> FileManager : "uses"
     BackupManager *-- "0..*" SaveTask
+    ProcessMonitor ..> SettingsManager : "reads businessSoftwareName"
+    SettingsData *-- CryptoSoft : "crypto configuration"
+
+    ' Relations Singleton (auto-référence)
+    BackupManager o-- BackupManager : _instance
+    LanguageManager o-- LanguageManager : _instance  
+    SettingsManager o-- SettingsManager : _instance
   }
 
   ' VIEWMODELS
   package "ViewModels" {
-    class MenuViewModel {
-      + actions: List<ActionItem>
-      - {readonly} _backupManager: BackupManager
-      - {readonly} _settingsManager: SettingsManager
-      - {readonly} _languageManager: LanguageManager
-      - {readonly} _logger: Logger
-      + MenuViewModel()
-      + ExecuteAction(action: string): string
-      - ShowSettingsMenu(): string
-      - RefreshActions(): void
-      - CreateBackup(): string
-      - ShowBackups(): string
-      - ShowBackupTable(backups: List<SaveTask>, title: string, showID: bool = false): void
-      - LoadBackup(): string
-      - EditBackup(): string
-      - DeleteBackup(): string
-      - Quit(): string
-      + GetTranslated(key: string): string
+    interface ICommand {
+        + CanExecute(parameter: object?): bool
+        + Execute(parameter: object?): void
+        + CanExecuteChanged: event EventHandler
     }
+
+    class RelayCommand {
+        - _execute: Action<object?>
+        - _canExecute: Func<object?, bool>?
+        + RelayCommand(execute: Action<object?>, canExecute: Func<object?, bool>?)
+        + CanExecute(parameter: object?): bool
+        + Execute(parameter: object?): void
+        + CanExecuteChanged: event EventHandler?
+    }
+
+    abstract class BaseViewModel {
+        + PropertyChanged: event PropertyChangedEventHandler?
+        # OnPropertyChanged(propertyName: string): void
+        # SetProperty<T>(ref field: T, value: T, propertyName: string): bool
+    }
+
+    class BackupItemViewModel {
+        - _backupManager: BackupManager
+        - _languageManager: LanguageManager
+        - _saveTask: SaveTask
+        - _isSelected: bool
+        - _backupEncryptType: string
+        + EditBackupCommand: ICommand
+        + DeleteBackupCommand: ICommand
+        + StartBackupCommand: ICommand
+        + RequestClose: event Action
+        + SaveTask: SaveTask
+        + IsSelected: bool
+        + BackupName: string
+        + BackupSource: string
+        + BackupTarget: string
+        + BackupType: string
+        + BackupEncryptType: string
+        + BackupItemViewModel(save: SaveTask)
+        - EditBackup(): void
+        - DeleteBackup(): void
+        + StartBackup(): void
+    }
+
+    class BackupWindowViewModel {
+        - _backupManager: BackupManager
+        - _languageManager: LanguageManager
+        - _isNewBackup: bool
+        - _oldBackupName: string
+        - _backupName: string
+        - _backupSource: string
+        - _backupDestination: string
+        - _backupType: SaveType
+        - _isBackupEncrypted: bool
+        + SaveCommand: ICommand
+        + CancelCommand: ICommand
+        + BrowseSourceCommand: ICommand
+        + BrowseDestinationCommand: ICommand
+        + RequestClose: Action?
+        + HighlightErrors: Action<List<string>>?
+        + WindowTitle: string
+        + SaveButtonText: string
+        + BackupName: string
+        + BackupSource: string
+        + BackupDestination: string
+        + BackupType: string
+        + IsBackupEncrypted: bool
+        + BackupWindowViewModel()
+        + BackupWindowViewModel(name: string, source: string, destination: string, type: string, encrypted: bool)
+        - VerifyBackup(): bool
+        - Create(): void
+        - Save(): void
+        - Cancel(): void
+        - BrowseFolder(isSource: bool): void
+        + HasValidationErrors(out errors: List<string>): bool
+    }
+
+    class CLIMenuViewModel {
+        + actions: List<ActionItem>
+        - _backupManager: BackupManager
+        - _settingsManager: SettingsManager
+        - _languageManager: LanguageManager
+        - _logger: LoggerLib.Logger
+        + CLIMenuViewModel(settingsManager: SettingsManager?, languageManager: LanguageManager?, backupManager: BackupManager?, logger: Logger?)
+        + ExecuteAction(action: string): string
+        + GetTranslated(key: string): string
+        - ShowSettingsMenu(): string
+        - ShowBusinessSoftwareSettings(): string
+        - RefreshActions(): void
+        - CreateBackup(): string
+        - ShowBackups(): string
+        - ShowBackupTable(backups: List<SaveTask>, title: string, showIndexes: bool): void
+        - LoadBackup(): string
+        - EditBackup(): string
+        - DeleteBackup(): string
+        - Quit(): string
+    }
+
+    class GUIMainViewModel {
+        - _backupManager: BackupManager
+        - _settingsManager: SettingsManager
+        - _languageManager: LanguageManager
+        - _logger: LoggerLib.Logger
+        - _isAllSelected: bool
+        + SelectAllBackupCommand: ICommand
+        + DeleteSelectedBackupsCommand: ICommand
+        + ExecuteSelectedBackupsCommand: ICommand
+        + NewBackupCommand: ICommand
+        + SettingsCommand: ICommand
+        + BackupItems: ObservableCollection<BackupItemViewModel>
+        + SelectedBackupItems: ObservableCollection<BackupItemViewModel>
+        + IsAllSelected: bool
+        + GUIMainViewModel()
+        + ReloadBackups(): void
+        + ReloadSelectedBackups(): void
+        + DeleteSelectedBackups(): void
+        + ExecuteSelectedBackups(): void
+        - SelectAllBackups(): void
+        - NewBackup(): void
+        - OpenSettings(): void
+    }
+
+    class SettingsWindowViewModel {
+        - _settingsManager: SettingsManager
+        - _languageManager: LanguageManager
+        - _languageCode: string
+        - _logFormat: string
+        - _businessSoftwareName: string
+        - _cryptoSoftPath: string
+        + WindowTitle: string
+        + SaveButtonText: string
+        + ResetButtonText: string
+        + LanguageLabel: string
+        + FormatLabel: string
+        + BusinessSoftwareNameLabel: string
+        + CryptoSoftPathLabel: string
+        + EnglishOption: string
+        + FrenchOption: string
+        + SpanishOption: string
+        + GermanOption: string
+        + RussianOption: string
+        + ItalianOption: string
+        + PortugueseOption: string
+        + SelectedLanguageCode: string
+        + SelectedLogFormat: string
+        + BusinessSoftwareName: string
+        + CryptoSoftPath: string
+        + SaveCommand: ICommand
+        + ResetCommand: ICommand
+        + CloseCommand: ICommand
+        + TestBusinessSoftwareCommand: ICommand
+        + BrowseCryptoSoftCommand: ICommand
+        + RequestClose: Action?
+        + BusinessSoftwareTested: Action<bool>?
+        + SettingsWindowViewModel()
+        - SetSettings(): void
+        - SaveSettings(): void
+        - ResetSettings(): void
+        - TestBusinessSoftware(): void
+        - BrowseCryptoSoft(): void
+        - ReloadWindow(): void
+        - CloseWindow(): void
+    }
+
+    ' Relations ViewModels
+    ICommand <|.. RelayCommand
+    BaseViewModel <|-- BackupItemViewModel
+    BaseViewModel <|-- BackupWindowViewModel
+    BaseViewModel <|-- GUIMainViewModel
+    BaseViewModel <|-- SettingsWindowViewModel
+    BaseViewModel <|-- CLIMenuViewModel
+
+    BackupItemViewModel --> BackupManager
+    BackupItemViewModel --> LanguageManager
+    BackupItemViewModel --> SaveTask
+
+    BackupWindowViewModel --> BackupManager
+    BackupWindowViewModel --> LanguageManager
+
+    GUIMainViewModel --> BackupManager
+    GUIMainViewModel --> SettingsManager
+    GUIMainViewModel --> LanguageManager
+    GUIMainViewModel --> Logger
+    GUIMainViewModel *-- "0..*" BackupItemViewModel
+
+    CLIMenuViewModel --> BackupManager
+    CLIMenuViewModel --> SettingsManager
+    CLIMenuViewModel --> LanguageManager
+    CLIMenuViewModel --> Logger
+    CLIMenuViewModel *-- "0..*" ActionItem
+
+    SettingsWindowViewModel --> SettingsManager
+    SettingsWindowViewModel --> LanguageManager
   }
 
   ' VIEWS
   package "Views" {
-    class MainMenuView {
-      - {readonly} _viewModel: MenuViewModel
-      + MainMenuView(viewModel: MenuViewModel)
-      + Show(): void
-      - ShowHeader(): void
+    class BackupWindow {
+        + BackupWindow()
+        + BackupWindow(backupName: string, backupSourcePath: string, backupTargetPath: string, backupType: string, backupEncryptType: string)
+        - HighlightInvalidFields(fieldNames: List<string>): void
+        - Window_MouseDown(sender: object, e: MouseButtonEventArgs): void
+        - Window_Closed(sender: object, e: EventArgs): void
+        - BrowseFolderButton_Click(sender: object, e: RoutedEventArgs): void
+        - SaveButton_Click(sender: object, e: RoutedEventArgs): void
+        - CancelButton_Click(sender: object, e: RoutedEventArgs): void
     }
+
+    class CLIMainMenuView {
+        - _viewModel: CLIMenuViewModel
+        + CLIMainMenuView(viewModel: CLIMenuViewModel)
+        + Show(): void
+        - ShowHeader(): void
+        - HandleUserInput(): void
+        - DisplayMenu(): void
+    }
+
+    class MainWindow {
+        - _viewModel: GUIMainViewModel
+        + MainWindow()
+        + Reload(): void
+        + UpdateSelectedBackups(): void
+        - LoadBackups(): void
+        - NewButton_Click(sender: object, e: RoutedEventArgs): void
+        - SettingsButton_Click(sender: object, e: RoutedEventArgs): void
+        - SettingsCryptoSoftButton_Click(sender: object, e: RoutedEventArgs): void
+        - TestButton_Click(sender: object, e: RoutedEventArgs): void
+        - BackupList_SelectionChanged(sender: object, e: SelectionChangedEventArgs): void
+    }
+
+    class SettingsCryptoSoftWindow {
+        + SettingsCryptoSoftWindow()
+        - Window_MouseDown(sender: object, e: MouseButtonEventArgs): void
+        - Close_Click(sender: object, e: RoutedEventArgs): void
+        - Window_Closed(sender: object, e: EventArgs): void
+        - Save_Click(sender: object, e: RoutedEventArgs): void
+        - Reset_Click(sender: object, e: RoutedEventArgs): void
+        - BrowseFolderButton_Click(sender: object, e: RoutedEventArgs): void
+        - Test_Click(sender: object, e: RoutedEventArgs): void
+    }
+
+    class SettingsWindow {
+        + SettingsWindow()
+        - Window_MouseDown(sender: object, e: MouseButtonEventArgs): void
+        - Window_Closed(sender: object, e: EventArgs): void
+        - ActionTestBusinessSoftware(businessSoftware: string): void
+        - BrowseFolderButton_Click(sender: object, e: RoutedEventArgs): void
+        - LanguageChanged(sender: object, e: SelectionChangedEventArgs): void
+    }
+
+    ' Relations Views
+    BackupWindow --> BackupWindowViewModel
+    CLIMainMenuView --> CLIMenuViewModel
+    MainWindow --> GUIMainViewModel
+    SettingsWindow --> SettingsWindowViewModel
   }
 
   ' Main Program
   class Program {
-    + {static} Main(): void
+    + Main(args: string[]): void {static}
+    + ShowHelp(): void {static}
+    - InitializeApplication(): void {static}
+    - ParseCommandLineArguments(args: string[]): void {static}
   }
 
-  ' RELATIONSHIPS
-  Program ..> MainMenuView
-  Program ..> MenuViewModel
+  ' RELATIONSHIPS PRINCIPALES
+  Program ..> CLIMainMenuView : "CLI mode"
+  Program ..> MainWindow : "GUI mode"
+  
+  ' Relations Logger
+  Logger *-- LogEntry
+  SaveTask ..> Logger : s_logger
+  CLIMenuViewModel ..> Logger : _logger
+  GUIMainViewModel ..> Logger : _logger
+}
 
-  MenuViewModel *-- "0..*" ActionItem
-  MenuViewModel o-- BackupManager
-  MenuViewModel o-- SettingsManager
-  MenuViewModel o-- LanguageManager
-
-  MainMenuView o-- MenuViewModel
-  }
+@enduml

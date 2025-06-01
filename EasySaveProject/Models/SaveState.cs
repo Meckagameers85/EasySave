@@ -1,5 +1,6 @@
 public class SaveState
 {
+    static public Mutex _mutex = new Mutex(false, "EasySaveProjectMutexState");
     public string name { get; set; } = "";
     public string sourceFilePath { get; set; } = "";
     public string targetFilePath { get; set; } = "";
