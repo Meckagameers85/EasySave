@@ -160,7 +160,7 @@ public class SaveTask
         {
 
             // je veux faire un sleep de 4s
-            System.Threading.Thread.Sleep(1000);
+            // System.Threading.Thread.Sleep(1000);
             // 🆕 VÉRIFICATION PENDANT LA SAUVEGARDE (Scénario C)
             if (_processMonitor?.IsBusinessSoftwareRunning() == true)
             {
