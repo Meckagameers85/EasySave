@@ -16,6 +16,7 @@ namespace EasySaveProject.ViewModels
         private readonly BackupManager _backupManager;
         private readonly SettingsManager _settingsManager;
         private readonly LanguageManager _languageManager;
+        private readonly CryptoSoftManager _cryptoSoftManager;
         private readonly LoggerLib.Logger _logger;
         public ICommand SelectAllBackupCommand { get; }
         public ICommand DeleteSelectedBackupsCommand { get; }
@@ -27,11 +28,14 @@ namespace EasySaveProject.ViewModels
         {
             _settingsManager = SettingsManager.instance;
             _languageManager = LanguageManager.instance;
+            _cryptoSoftManager = CryptoSoftManager.instance;
             _languageManager.Load(_settingsManager.currentLanguage);
             _backupManager = BackupManager.instance;
             _logger = new LoggerLib.Logger("logs", _settingsManager.formatLogger);
             SaveTask.s_logger = _logger;
             SaveTask.s_settingsManager = _settingsManager;
+            SaveTask.s_cryptoSoftManager = _cryptoSoftManager;
+
 
             SelectAllBackupCommand = new RelayCommand(SelectAllBackups);
             DeleteSelectedBackupsCommand = new RelayCommand(DeleteSelectedBackups);

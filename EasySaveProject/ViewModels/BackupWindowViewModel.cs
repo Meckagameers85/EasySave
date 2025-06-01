@@ -137,17 +137,17 @@ public class BackupWindowViewModel : INotifyPropertyChanged
     {
         if (!VerifyBackup())
             return;
-        SaveTask newBackup = new SaveTask(_backupSource, _backupDestination, _backupName, _backupType);
+        SaveTask newBackup = new SaveTask(_backupSource, _backupDestination, _backupName, _backupType, _isBackupEncrypted);
         _backupManager.AddBackup(newBackup);
         CloseWindow();
     }
     private void Save()
     {
         if (_oldBackupName != _backupName && !_backupManager.BackupExists(_backupName))
-        {
-            _backupManager.RenameBackup(_oldBackupName, _backupName);
-        }
-        SaveTask updatedBackup = new SaveTask(_backupSource, _backupDestination, _backupName, _backupType);
+            {
+                _backupManager.RenameBackup(_oldBackupName, _backupName);
+            }
+        SaveTask updatedBackup = new SaveTask(_backupSource, _backupDestination, _backupName, _backupType, _isBackupEncrypted);
         _backupManager.EditBackup(updatedBackup);
         CloseWindow();
     }

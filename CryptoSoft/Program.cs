@@ -237,6 +237,11 @@ class CryptoSoft
     {
         if (mode == "encode")
             {
+                if (extensions != null && !(extensions.Contains(".*") || extensions.Any(ext => path.EndsWith(ext, StringComparison.OrdinalIgnoreCase))))
+                {
+                    Console.WriteLine($"Skipped (extension not allowed): {path}");
+                    return;
+                }
                 if (algorithm == "xor")
                 {
                     if (path.EndsWith(".xor", StringComparison.OrdinalIgnoreCase))
@@ -295,8 +300,6 @@ class CryptoSoft
     {
         foreach (var file in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
         {
-            if (extensions != null && !(extensions.Contains(".*") || extensions.Any(ext => file.EndsWith(ext, StringComparison.OrdinalIgnoreCase))) && mode == "encode")
-                continue;
             ProcessFile(file, mode, algorithm);
         }
     }

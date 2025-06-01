@@ -10,5 +10,6 @@ namespace LoggerLib
         public string destination { get; set; }
         public long sizeBytes { get; set; }
         public double transferTimeMs { get; set; }
+        public double encryptTimeMs { get; set; }
     }
 }

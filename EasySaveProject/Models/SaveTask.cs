@@ -13,17 +13,18 @@ public class SaveTask
     public string? name { get; set; }
     public string? sourceDirectory { get; set; }
     public string? targetDirectory { get; set; }
-
+    public bool IsEncrypted { get; set; }
     public static SettingsManager? s_settingsManager { get; set; }
+    public static CryptoSoftManager? s_cryptoSoftManager { get; set; }
     private ProcessMonitor? _processMonitor;
 
     // NOUVEAUX : Mécanismes de contrôle play ans pause
     private ManualResetEvent _pauseEvent = new(true); // true = non bloquant au début
     private CancellationTokenSource _cts = new();
+
     public SaveType? type { get; set; }
 
     public static LoggerLib.Logger? s_logger { get; set; }
-
     public static string s_stateFilePath { get; set; } = "state.json";
 
     private Dictionary<SaveType, string> _saveTypeToString = new()
@@ -62,7 +63,7 @@ public class SaveTask
         else { return "Full"; }
     }
 
-    public SaveTask(string? sourceDirectory = null, string? targetDirectory = null, string? name = null, SaveType? type = SaveType.Full)
+    public SaveTask(string? sourceDirectory = null, string? targetDirectory = null, string? name = null, SaveType? type = SaveType.Full, bool IsEncrypted = false)
     {
         /*
             Visibility : public
@@ -74,6 +75,7 @@ public class SaveTask
         this.targetDirectory = targetDirectory;
         this.name = name;
         this.type = type;
+        this.IsEncrypted = IsEncrypted;
 
         // 🔄 CORRECTION : Initialisation plus robuste du ProcessMonitor
         InitializeProcessMonitor();
@@ -138,7 +140,8 @@ public class SaveTask
                 source = "BACKUP_BLOCKED",
                 destination = $"Backup refused - Business software running: {s_settingsManager?.businessSoftwareName}",
                 sizeBytes = 0,
-                transferTimeMs = -1
+                transferTimeMs = -1,
+                encryptTimeMs = -1
             };
             s_logger?.Log(blockEntry);
             UpdateStateInFile("BLOCKED");
@@ -177,7 +180,6 @@ public class SaveTask
 
             //  VÉRIFICATION PENDANT LA SAUVEGARDE (Scénario C)
             InitializeProcessMonitor();
-
             if (_processMonitor?.IsBusinessSoftwareRunning() == true)
             {
                 // Log de l'arrêt dans le fichier de log
@@ -188,7 +190,8 @@ public class SaveTask
                     source = file,
                     destination = $"STOPPED - Business software detected: {s_settingsManager?.businessSoftwareName}",
                     sizeBytes = 0,
-                    transferTimeMs = -1 // Code d'arrêt
+                    transferTimeMs = -1, // Code d'arrêt
+                    encryptTimeMs = -1
                 };
                 s_logger?.Log(stopEntry);
                 // Mettre le state.json en "BLOCKED"
@@ -249,6 +252,17 @@ public class SaveTask
                     File.Copy(file, destinationPath, true);
                     var endTime = DateTime.UtcNow;
                     logEntry.transferTimeMs = (endTime - startTime).TotalMilliseconds;
+                    if (IsEncrypted)
+                    {
+                        var startEncTime = DateTime.UtcNow;
+                        s_cryptoSoftManager?.UseCryptoSoftWithFile(destinationPath, "encode");
+                        var endEncTime = DateTime.UtcNow;
+                        logEntry.encryptTimeMs = (endEncTime - startEncTime).TotalMilliseconds;
+                    }
+                    else
+                    {
+                        logEntry.encryptTimeMs = 0;
+                    }
                 }
                 catch
                 {
@@ -297,7 +311,6 @@ public class SaveTask
 
             UpdateRealtimeState(finalState);
         }
-        // Sinon, c'est que Stop() a été appelé - l'état "STOPPED" est déjà écrit
     }
 
     private void UpdateRealtimeState(SaveState currentState)

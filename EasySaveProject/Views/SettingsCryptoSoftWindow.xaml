@@ -54,7 +54,7 @@
                     Foreground="White"
                     FontWeight="Bold"
                     BorderThickness="0"
-                    Click="Close_Click"/>
+                    Command="{Binding CloseCommand}"/>
         </Grid>
 
         <!-- Contenu central -->
@@ -64,30 +64,42 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="60"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="100" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Type :" VerticalAlignment="Center" Foreground="White"/>
-                    <ComboBox x:Name="TypeComboBox"
-                              Grid.Column="1"
-                              Width="160"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Left">
-                        <ComboBoxItem Uid="RSA" >RSA</ComboBoxItem>
-                        <!-- <ComboBoxItem Uid="xor">XOR</ComboBoxItem> -->
-                    </ComboBox>
+                    <TextBlock Text="Extensions :" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBox Grid.Column="1" Height="25" Width="160" Margin="0" Text="{Binding AllowedExtensions, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock Grid.Column="2" Text="Ex: .pdf, .docx, .txt" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
             </Border>
             <Border Background="#888" CornerRadius="15" Padding="10,0,5,0" Margin="0,5" Height="40" Width="360">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="60"/>
+                        <ColumnDefinition Width="80"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="100" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Extensions :" VerticalAlignment="Center" Foreground="White"/>
-                    <TextBox Grid.Column="1" Height="25" Width="160" Margin="0"></TextBox>
-                    <TextBlock Grid.Column="2" Text="Ex: .pdf, .docx, .txt" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="Public Key PATH" VerticalAlignment="Center" Foreground="White"/>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBox x:Name="PublicKeyPathBox" Width="220" Height="25" Margin="0" VerticalContentAlignment="Center" Text="{Binding PublicKeyPath, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Content="📁" Width="30" Height="25" Tag="{Binding ElementName=PublicKeyPathBox}" Click="BrowseFolderButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Border Background="#888" CornerRadius="15" Padding="10,0,5,0" Margin="0,5" Height="40" Width="360">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Private Key PATH" VerticalAlignment="Center" Foreground="White"/>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBox x:Name="PrivateKeyPathBox" Width="220" Height="25" Margin="0" VerticalContentAlignment="Center" Text="{Binding PrivateKeyPath, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Content="📁" Width="30" Height="25" Tag="{Binding ElementName=PrivateKeyPathBox}" Click="BrowseFolderButton_Click"/>
+                    </StackPanel>
                 </Grid>
             </Border>
         </StackPanel>
@@ -97,8 +109,8 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Bottom"
                     Margin="0,0,0,10">
-            <Button Content="Save" Width="60" Margin="5" Click="Save_Click" Style="{StaticResource RoundedButtonStyle}"/>
-            <Button Content="Reset All" Width="80" Margin="5" Click="Reset_Click" Style="{StaticResource RoundedButtonStyle}"/>
+            <Button Content="Save" Width="60" Margin="5" Style="{StaticResource RoundedButtonStyle}" Command="{Binding SaveCommand}"/>
+            <Button Content="Reset All" Width="80" Margin="5" Style="{StaticResource RoundedButtonStyle}" Command="{Binding ResetCommand}"/>
         </StackPanel>
     </Grid>
 </Window>
