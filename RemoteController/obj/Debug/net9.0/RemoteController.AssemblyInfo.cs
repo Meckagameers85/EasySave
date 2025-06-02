@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RemoteController")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2107e119f966952e72cfb6392d5f5d7f32215d7e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b7635d3f662729a14ab85577dfd5f627fa5426c3")]
 [assembly: System.Reflection.AssemblyProductAttribute("RemoteController")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RemoteController")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

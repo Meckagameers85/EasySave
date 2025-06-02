@@ -19,4 +19,8 @@
     <ProjectReference Include="..\LoggerLib\LoggerLib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\EasySaveProject.Core\EasySaveProject.Core.csproj" />
+  </ItemGroup>
+
 </Project>

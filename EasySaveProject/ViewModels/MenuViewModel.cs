@@ -1,4 +1,4 @@
-using EasySaveProject.Models;
+using EasySaveProject.Core.Models;
 using Spectre.Console;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,6 +1,7 @@
 ﻿using EasySaveProject.ViewModels;
 using EasySaveProject.Views;
-using EasySaveProject.Models;
+using EasySaveProject.Core.Models;
+using System.Diagnostics;
 using System;
 using System.IO;
 
@@ -8,11 +9,14 @@ class Program
 {
     static void Main(string[] args)
     {
+        // Lancer l'API en arrière-plan
+        LaunchAPI();
         var backupManager = BackupManager.instance;
         var settingsManager = SettingsManager.instance;
         var languageManager = LanguageManager.instance;
         var logger = new LoggerLib.Logger("logs", settingsManager.formatLogger);
         SaveTask.s_logger = logger;
+        
 
         if (args.Length == 1 && (args[0] == "-h" || args[0] == "-help"))
         {
@@ -77,5 +81,32 @@ class Program
         Console.WriteLine();
         Console.WriteLine("Options:");
         Console.WriteLine("  -h, -help       Show this help message");
+    }
+    static void LaunchAPI()
+    {
+        // Chemin ABSOLU vers la solution
+        string solutionRoot = @"C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave";
+
+        // Construction du chemin vers l'exécutable API
+        string cheminApi = Path.Combine(solutionRoot, "RemoteController", "bin", "Debug", "net9.0", "RemoteController.exe");
+
+        if (!File.Exists(cheminApi))
+        {
+            Console.WriteLine("❌ L'API n'a pas été trouvée à : " + cheminApi);
+            return;
+        }
+
+        var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = cheminApi,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            }
+        };
+
+        process.Start();
+        Console.WriteLine("✅ API RemoteController lancée ! le lien est http://localhost:5005");
     }
 }

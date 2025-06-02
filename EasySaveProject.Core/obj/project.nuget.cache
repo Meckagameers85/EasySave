@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "5FwbSWPKKag=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\maher\\Desktop\\VIE\\A3\\Génie Logiciel\\Projet\\EasySave\\EasySaveProject.Core\\EasySaveProject.Core.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\maher\\.nuget\\packages\\spectre.console\\0.50.0\\spectre.console.0.50.0.nupkg.sha512",
+    "C:\\Users\\maher\\.nuget\\packages\\system.memory\\4.6.3\\system.memory.4.6.3.nupkg.sha512"
+  ],
+  "logs": []
+}

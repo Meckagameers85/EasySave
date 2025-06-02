@@ -1,0 +1,16 @@
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\obj\Debug\net9.0\EasySaveProject.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\obj\Debug\net9.0\EasySaveProject.Core.AssemblyInfoInputs.cache
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\obj\Debug\net9.0\EasySaveProject.Core.AssemblyInfo.cs
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\obj\Debug\net9.0\EasySaveProject.Core.csproj.CoreCompileInputs.cache
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\obj\Debug\net9.0\EasySaveProject.Core.sourcelink.json
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\obj\Debug\net9.0\EasySaveProject.Core.csproj.AssemblyReference.cache
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\bin\Debug\net9.0\EasySaveProject.Core.deps.json
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\bin\Debug\net9.0\EasySaveProject.Core.dll
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\bin\Debug\net9.0\EasySaveProject.Core.pdb
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\bin\Debug\net9.0\LoggerLib.dll
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\bin\Debug\net9.0\LoggerLib.pdb
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\obj\Debug\net9.0\EasySave.F24BE27E.Up2Date
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\obj\Debug\net9.0\EasySaveProject.Core.dll
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\obj\Debug\net9.0\refint\EasySaveProject.Core.dll
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\obj\Debug\net9.0\EasySaveProject.Core.pdb
+C:\Users\maher\Desktop\VIE\A3\Génie Logiciel\Projet\EasySave\EasySaveProject.Core\obj\Debug\net9.0\ref\EasySaveProject.Core.dll
